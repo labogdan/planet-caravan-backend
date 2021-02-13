@@ -34,6 +34,7 @@ class Saleor:
         self.categories = {}
         self.attribute_assignments = {}
         self.environment = environment
+        self.warehouse_id = None
 
 
     def update_stock(self, file=''):
@@ -45,7 +46,6 @@ class Saleor:
         info(f'Updating stock from {file}')
         df = pd.read_csv(file)
 
-        warehouse_id = os.getenv('WAREHOUSE_ID')
 
         self.db_connect()
         cursor = self.db.cursor()
@@ -63,7 +63,7 @@ class Saleor:
                 WHERE product_productvariant.id = warehouse_stock.product_variant_id
                     AND product_productvariant.sku = %s
                     AND warehouse_stock.warehouse_id = %s
-            """, (inventory, sku, warehouse_id))
+            """, (inventory, sku, self.warehouse_id))
 
 
     def import_all(self, file=''):
@@ -82,7 +82,8 @@ class Saleor:
             return False
 
         # Run the process
-        result = (self.create_types_attributes(df.copy()) and
+        result = (self.get_warehouse() and
+                  self.create_types_attributes(df.copy()) and
                   self.create_categories(df.copy()) and
                   self.fix_category_hierarchy() and
                   self.create_products(df.copy()) and
@@ -118,6 +119,29 @@ class Saleor:
             error("Unable to connect to database.")
             error(e)
             return False
+
+    def get_warehouse(self):
+        cursor = self.db.cursor()
+
+        try:
+            cursor.execute("""
+                SELECT id
+                FROM warehouse_warehouse
+                LIMIT 1""")
+
+            result = cursor.fetchone()
+            if result is None:
+                error('No warehouse set up.')
+                warning('Create one via the Saleor dashbboard.')
+            else:
+                self.warehouse_id = result[0]
+                comment(f'Warehouse found: {self.warehouse_id}')
+                return True
+
+        except Exception as e:
+            error(f'Cannot get warehouse ID.')
+            error(e)
+        return False
 
     def create_types_attributes(self, df):
         info("Setting up Product types and attributes")
