@@ -653,9 +653,8 @@ class Saleor:
         photo_host = 'https://rndpxl.com/pc'
         photo_output = '../../media/products'
         comment(f'Image Host: {photo_host}')
-        comment(f'Output Directory: {photo_output}')
 
-        if not os.path.exists(photo_output):
+        if self.environment == 'local' and not os.path.exists(photo_output):
             os.makedirs(photo_output)
 
         # Proceed with the import
