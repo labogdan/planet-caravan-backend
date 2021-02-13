@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import psycopg2
 import psycopg2.extras
-
+import boto3
 from Lib.Saleor.Category import Category
 from Lib.Saleor.Product import Product
 from Lib.Saleor.ProductAttribute import ProductAttribute
@@ -658,47 +658,6 @@ class Saleor:
         if not os.path.exists(photo_output):
             os.makedirs(photo_output)
 
-        # missing = []
-        # filename_map = {}
-        #
-        # for photo_header in Saleor.IMAGES:
-        #     photos = list(df[photo_header])
-        #
-        #     for photo in photos:
-        #         if has_value(photo):
-        #             found = glob.glob(f'{photo_input}/**/*/{photo}', recursive=True)
-        #
-        #             if len(found) < 1:
-        #                 missing.append(photo)
-        #             else:
-        #                 filename_map[photo] = found[0]
-
-
-        # ml = len(missing)
-        # if ml > 0:
-        #     """
-        #     Mini-prompt for user
-        #     """
-        #     while True:
-        #         warning(f'Continue with {ml} missing image{ "" if ml == 0 else "s"}?')
-        #         comment("c = continue  |  s = stop  |  v = view missing images")
-        #         r = input('Response: ')
-        #
-        #         if r:
-        #             r = r.lower()
-        #             if r == 'c':
-        #                 break
-        #             elif r == 's':
-        #                 error("Stopping.")
-        #                 return False
-        #             elif r == 'v':
-        #                 warning("Missing photos:")
-        #                 for photo in missing:
-        #                     info(f'- {photo}')
-        #             else:
-        #                 warning("Invalid choice.")
-        #                 print()
-
         # Proceed with the import
         cursor = self.db.cursor(cursor_factory=psycopg2.extras.DictCursor)
         for (idx, v) in df.iterrows():
@@ -726,15 +685,36 @@ class Saleor:
 
             # Seems okay, lets add the images
             variant_images = [v.loc[d] for d in Saleor.IMAGES if has_value(v.loc[d])]
+
+            s3 = None
+            AWS_MEDIA_BUCKET_NAME = os.environ.get("AWS_MEDIA_BUCKET_NAME")
+            AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+            AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+
+            if self.environment == 'production':
+
+                session = boto3.Session(
+                    aws_access_key_id=AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+                )
+                s3 = session.resource('s3')
+
             for img in variant_images:
                 # if img not in filename_map.keys():
                 #     warning(f'{img} missing from filename_map, skipping ({product_id}:{variant_id}).')
                 #     continue
 
                 try:
+                    if self.environment == 'local':
+                        dest = f'{photo_output}/{img}'
+                        urllib.request.urlretrieve(f'{photo_host}/{img.replace(" ", "%20")}', dest)
+                    else:
+                        fp = urllib.request.urlopen(f'{photo_host}/{img.replace(" ", "%20")}')
+                        img_bytes = fp.read()
+                        s3.Bucket(AWS_MEDIA_BUCKET_NAME).put_object(
+                            Body=img_bytes,
+                            Key=f'products/{img}')
 
-                    dest = f'{photo_output}/{img}'
-                    urllib.request.urlretrieve(f'{photo_host}/{img.replace(" ", "%20")}', dest)
 
                     # Create product photo
                     cursor.execute("""
