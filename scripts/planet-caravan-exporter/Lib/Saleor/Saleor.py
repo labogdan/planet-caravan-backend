@@ -509,7 +509,6 @@ class Saleor:
                 error(e)
                 return False
 
-            warehouse_id = os.getenv('WAREHOUSE_ID')
 
             # Create each variant
             for (idx, v) in frame.iterrows():
@@ -565,7 +564,7 @@ class Saleor:
                         ON CONFLICT (warehouse_id, product_variant_id)
                         DO
                             UPDATE SET quantity = %s
-                        """, (variant.id, v.loc['Quantity'], warehouse_id, v.loc['Quantity']))
+                        """, (variant.id, v.loc['Quantity'], self.warehouse_id, v.loc['Quantity']))
 
 
                 except Exception as e:
