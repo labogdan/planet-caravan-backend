@@ -530,7 +530,7 @@ class Saleor:
                         SELECT id
                         FROM product_productvariant
                         WHERE LOWER(sku) = %s
-                        LIMIT 1""", (str(variant.sku),))
+                        LIMIT 1""", (str(variant.sku).lower(),))
 
                     result = cursor.fetchone()
                     if result is None:
