@@ -66,7 +66,7 @@ class Saleor:
             """, (inventory, sku, self.warehouse_id))
 
 
-    def import_all(self, file=''):
+    def import_all(self, file='', image_base=''):
         """
         Imports an entire store's data
         Should only be run on a new saleor store; not really designed to handle existing data in store (especially categories)
@@ -87,7 +87,7 @@ class Saleor:
                   self.create_categories(df.copy()) and
                   self.fix_category_hierarchy() and
                   self.create_products(df.copy()) and
-                  self.upload_images(df.copy()))
+                  self.upload_images(df.copy(), image_base))
         print()
 
         if result:
@@ -648,11 +648,9 @@ class Saleor:
 
         return True
 
-    def upload_images(self, df):
-        info("Uploading images")
-        photo_host = 'https://rndpxl.com/pc'
+    def upload_images(self, df, photo_host):
+        info(f"Uploading images from {photo_host}")
         photo_output = '../../media/products'
-        comment(f'Image Host: {photo_host}')
 
         if self.environment == 'local' and not os.path.exists(photo_output):
             os.makedirs(photo_output)

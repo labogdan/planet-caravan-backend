@@ -14,7 +14,7 @@ def run_process(arguments):
         load_dotenv()
 
     s = Saleor(environment)
-    s.import_all(arguments[1])
+    s.import_all(arguments[1], arguments[2])
 
 
 
