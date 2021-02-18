@@ -521,7 +521,7 @@ class Saleor:
                         name += f' / {opt_value}'
 
                 variant = Variant(name, product.id)
-                variant.sku = v[Saleor.IMPORT_SKU].strip("'")
+                variant.sku = str(v[Saleor.IMPORT_SKU]).strip("'").strip()
                 variant.price_amount = v['Price']
                 variant.cost_price_amount = v['Cost']
 
