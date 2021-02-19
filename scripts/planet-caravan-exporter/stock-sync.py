@@ -10,9 +10,8 @@ def run_process():
 
     print(stock_file)
 
-
-    # s = Saleor()
-    # s.update_stock(stock_file)
+    s = Saleor()
+    s.update_stock(stock_file)
 
 
 

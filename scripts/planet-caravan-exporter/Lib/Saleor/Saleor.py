@@ -48,6 +48,8 @@ class Saleor:
 
 
         self.db_connect()
+        self.get_warehouse()
+
         cursor = self.db.cursor()
 
         for (i, row) in df.iterrows():
@@ -61,9 +63,9 @@ class Saleor:
                 SET quantity = %s
                 FROM product_productvariant
                 WHERE product_productvariant.id = warehouse_stock.product_variant_id
-                    AND product_productvariant.sku = %s
+                    AND LOWER(product_productvariant.sku) = %s
                     AND warehouse_stock.warehouse_id = %s
-            """, (inventory, sku, self.warehouse_id))
+            """, (inventory, str(sku).lower(), self.warehouse_id))
 
 
     def import_all(self, file='', image_base=''):
