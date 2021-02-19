@@ -7,7 +7,7 @@ from Lib.ShopKeep.ShopKeep import ShopKeep
 
 def run_process(arguments):
     environment = 'production'
-    if len(arguments) and arguments[1] == '--local':
+    if len(arguments) >= 2 and arguments[1] == '--local':
         del arguments[1]
         environment = 'local'
         load_dotenv()
