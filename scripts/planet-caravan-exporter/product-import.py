@@ -1,5 +1,4 @@
 import sys
-
 from dotenv import load_dotenv
 
 from Lib.Saleor.Saleor import Saleor

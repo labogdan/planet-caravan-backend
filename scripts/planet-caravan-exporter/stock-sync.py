@@ -1,10 +1,11 @@
+import sys
 from dotenv import load_dotenv
 
 from Lib.Saleor.Saleor import Saleor
 from Lib.ShopKeep.ShopKeep import ShopKeep
 
 
-def run_process():
+def run_process(arguments):
     environment = 'production'
     if len(arguments) and arguments[1] == '--local':
         del arguments[1]
@@ -21,4 +22,4 @@ def run_process():
 
 
 if __name__ == '__main__':
-    run_process()
+    run_process(sys.argv)
