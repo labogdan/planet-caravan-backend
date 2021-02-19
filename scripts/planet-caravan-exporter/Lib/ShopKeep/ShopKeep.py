@@ -10,14 +10,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 class ShopKeep:
-    def __init__(self):
+    def __init__(self, environment):
+        self.environment = environment
         self.timeout = int(os.getenv('SK_TIMEOUT'))
         self.browser = None
         self.download_dir = os.getcwd()
         self.stock_file = 'planetcaravan_stock_items.csv'
 
     def run(self):
-
         url = os.getenv('SK_HOSTNAME')
 
         # Open up a browser
@@ -25,16 +25,22 @@ class ShopKeep:
         preferences = {"download.default_directory": self.download_dir,
                        "directory_upgrade": True,
                        "safebrowsing.enabled": True}
+
         chrome_options.add_experimental_option("prefs", preferences)
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--window-size=1920,1080")
 
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--no-sandbox")
+        if self.environment == 'local':
+            self.browser = webdriver.Chrome(options=chrome_options)
+        else:
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
-        chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+            self.browser = webdriver.Chrome(
+                executable_path=os.environ.get("CHROMEDRIVER_PATH"),
+                chrome_options=chrome_options)
 
-        self.browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
         self.browser.get(url)
 
         # Sequence of events
@@ -96,7 +102,8 @@ class ShopKeep:
 
     def download_file(self):
         # Go to Export Center
-        self.wait_then_click('//div[contains(@class, "navigation__link")]/a[contains(text(), "Export Center")]')
+        self.wait_then_click(
+            '//div[contains(@class, "navigation__link")]/a[contains(text(), "Export Center")]')
 
         attempts = 20
         download_xpath = '//div[contains(@class, "ReactVirtualized__Table__row")][1]//span[contains(@class, ' \
@@ -129,7 +136,8 @@ class ShopKeep:
         attempts = 20
         file = f'{self.download_dir}/{self.stock_file}'
         while attempts > 0:
-            print(f'Waiting for download to complete ({attempts} attempts remaining)...')
+            print(
+                f'Waiting for download to complete ({attempts} attempts remaining)...')
             sleep(5)
 
             if os.path.isfile(file):

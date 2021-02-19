@@ -5,14 +5,19 @@ from Lib.ShopKeep.ShopKeep import ShopKeep
 
 
 def run_process():
-    sk = ShopKeep()
+    environment = 'production'
+    if len(arguments) and arguments[1] == '--local':
+        del arguments[1]
+        environment = 'local'
+        load_dotenv()
+
+    sk = ShopKeep(environment)
     stock_file = sk.run()
 
     print(stock_file)
 
-    s = Saleor()
+    s = Saleor(environment)
     s.update_stock(stock_file)
-
 
 
 if __name__ == '__main__':
