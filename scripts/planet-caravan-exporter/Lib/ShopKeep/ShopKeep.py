@@ -11,9 +11,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 class ShopKeep:
     def __init__(self):
-        self.timeout = int(os.getenv('TIMEOUT'))
+        self.timeout = int(os.getenv('SK_TIMEOUT'))
         self.browser = None
-        self.download_dir = os.getcwd() + "/downloads"
+        self.download_dir = os.getcwd()
         self.stock_file = 'planetcaravan_stock_items.csv'
 
     def run(self):
@@ -21,7 +21,6 @@ class ShopKeep:
         url = os.getenv('SK_HOSTNAME')
 
         # Open up a browser
-
         chrome_options = webdriver.ChromeOptions()
         preferences = {"download.default_directory": self.download_dir,
                        "directory_upgrade": True,
@@ -30,7 +29,12 @@ class ShopKeep:
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--window-size=1920,1080")
 
-        self.browser = webdriver.Chrome(options=chrome_options)
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--no-sandbox")
+
+        chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+
+        self.browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
         self.browser.get(url)
 
         # Sequence of events
