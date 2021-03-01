@@ -8,6 +8,7 @@ class Product:
         self.name = name
         self.slug = handleize(name)
         self.description = ''
+        self.description_json = ''
         self.product_type_id = None
         self.is_published = True
         self.category_id = None
@@ -17,3 +18,4 @@ class Product:
         self.visible_in_listings = True
         self.metadata = '{}'
         self.private_metadata = '{}'
+        self.description = ''
