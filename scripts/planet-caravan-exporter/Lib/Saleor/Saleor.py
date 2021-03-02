@@ -696,9 +696,16 @@ class Saleor:
 
                     product.product_type_id = ptype.id if ptype is not None else None
                     product.category_id = category.id if category is not None else None
-                    desc = str(row['Description']).strip()
+
+                    desc = row['Description']
+                    desc_json = row['description_json']
                     product.description = desc
-                    product.description_json = self.make_description_block(desc)
+                    if has_value(desc_json):
+                        product.description_json = str(desc_json).strip()
+                    elif has_value(desc):
+                        product.description_json = self.make_description_block(str(desc).strip())
+                    else:
+                        product.description_json = '{}'
 
                     cursor.execute("""
                         INSERT INTO product_product
@@ -794,7 +801,12 @@ class Saleor:
                                 return False
 
             # Add product to collections
-            collections = row['Collections'].split(',')
+            collections = row['Collections']
+            if has_value(collections):
+                collections = collections.split(',')
+            else:
+                collections = []
+
             for cname in collections:
                 cname = cname.strip()
                 if cname not in self.collections.keys():
