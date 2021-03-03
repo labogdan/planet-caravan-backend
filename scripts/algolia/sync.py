@@ -31,7 +31,7 @@ def algolia_sync(arguments):
         else:
             # Heroku Production
             db_host = os.environ['DATABASE_URL']
-            self.db = psycopg2.connect(db_host, sslmode='require')
+            db = psycopg2.connect(db_host, sslmode='require')
 
     except Exception as e:
         error("Unable to connect to database.")
