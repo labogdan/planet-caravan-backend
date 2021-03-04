@@ -33,7 +33,7 @@ class Saleor:
     ]
     IMPORT_SKU = 'SKU (Do Not Edit)'
     INVENTORY_SKU = 'Store Code (SKU)'
-    IMAGES = [f'Photo {x}' for x in range(1, 3)]
+    IMAGES = [f'Photo {x}' for x in range(1, 6)]
 
     def __init__(self, environment):
         self.db = None
