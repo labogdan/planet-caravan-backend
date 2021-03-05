@@ -16,7 +16,7 @@ from Lib.helpers import has_value
 import urllib.request
 import random
 import string
-
+import mimetypes
 
 class Saleor:
     # CSV header constants
@@ -1014,7 +1014,7 @@ class Saleor:
                 continue
 
             # Seems okay, lets add the images
-            variant_images = [v.loc[d] for d in Saleor.IMAGES if has_value(v.loc[d])]
+            variant_images = [v.loc[d] for d in Saleor.IMAGES if d in df.columns and has_value(v.loc[d])]
 
             s3 = None
             AWS_MEDIA_BUCKET_NAME = os.environ.get("AWS_MEDIA_BUCKET_NAME")
@@ -1039,12 +1039,14 @@ class Saleor:
                         urllib.request.urlretrieve(
                             f'{photo_host}/{img.replace(" ", "%20")}', dest)
                     else:
+                        mtype = mimetypes.MimeTypes().guess_type(img)[0]
                         fp = urllib.request.urlopen(
                             f'{photo_host}/{img.replace(" ", "%20")}')
                         img_bytes = fp.read()
                         s3.Bucket(AWS_MEDIA_BUCKET_NAME).put_object(
                             Body=img_bytes,
-                            Key=f'products/{img}')
+                            Key=f'products/{img}',
+                            ContentType=mtype)
 
                     # Create product photo
                     cursor.execute("""
