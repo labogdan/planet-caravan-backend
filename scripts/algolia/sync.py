@@ -96,8 +96,7 @@ def algolia_sync(arguments):
                         'description': description
                     })
 
-                print(objects)
-                # index.save_objects(objects)
+                index.save_objects(objects)
 
         except Exception as e:
             error(f'Error syncing.')
