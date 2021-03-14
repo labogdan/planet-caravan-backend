@@ -598,6 +598,7 @@ class Saleor:
                     return False
 
         self.categories = categories
+
         return True
 
     def fix_category_hierarchy(self):
