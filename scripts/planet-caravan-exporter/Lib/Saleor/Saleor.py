@@ -191,12 +191,12 @@ class Saleor:
             for (attribute_name, attribute_value) in Saleor.ATTRIBUTE_HEADERS:
 
                 attribute_names = list(set([
-                    d.strip() for d in frame[attribute_name]
+                    str(d).strip() for d in frame[attribute_name]
                     if has_value(d)
                 ]))
 
                 attribute_values = list(set([
-                    d.strip() for d in frame[attribute_value]
+                    str(d).strip() for d in frame[attribute_value]
                     if has_value(d)
                 ]))
 
