@@ -740,6 +740,11 @@ class Saleor:
 
             # Add product attributes
             for (att_name_key, att_value_key) in Saleor.ATTRIBUTE_HEADERS:
+
+                if att_name_key not in frame.columns or att_value_key not in frame.columns:
+                    # Apparently it was decided that only one import would have 4 attributes (x2)
+                    continue
+
                 att_name = row[att_name_key]
                 att_value = row[att_value_key]
 
