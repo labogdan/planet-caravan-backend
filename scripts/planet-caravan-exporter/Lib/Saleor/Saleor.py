@@ -29,7 +29,8 @@ class Saleor:
     ATTRIBUTE_HEADERS = [
         ('Attribute Name 1', 'Attribute Value 1'),
         ('Attribute Name 2', 'Attribute Value 2'),
-        ('Attribute Name 3', 'Attribute Value 3')
+        ('Attribute Name 3', 'Attribute Value 3'),
+        ('Attribute Name 4', 'Attribute Value 4'),
     ]
     IMPORT_SKU = 'SKU (Do Not Edit)'
     INVENTORY_SKU = 'Store Code (SKU)'
@@ -189,6 +190,10 @@ class Saleor:
 
             # Product Attributes
             for (attribute_name, attribute_value) in Saleor.ATTRIBUTE_HEADERS:
+
+                if attribute_name not in frame.columns or attribute_value not in frame.columns:
+                    # Apparently it was decided that only one import would have 4 attributes
+                    continue
 
                 attribute_names = list(set([
                     str(d).strip() for d in frame[attribute_name]
