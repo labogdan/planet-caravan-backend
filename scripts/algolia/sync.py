@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 
 
 def algolia_sync(arguments):
-
     environment = 'production'
     if len(arguments) >= 2 and arguments[1] == '--local':
         load_dotenv()
@@ -38,7 +37,8 @@ def algolia_sync(arguments):
         error(e)
         return False
 
-    client = SearchClient.create(os.getenv('ALGOLIA_APPLICATION_ID'), os.getenv('ALGOLIA_ADMIN_KEY'))
+    client = SearchClient.create(os.getenv('ALGOLIA_APPLICATION_ID'),
+                                 os.getenv('ALGOLIA_ADMIN_KEY'))
     index = client.init_index(os.getenv('ALGOLIA_INDEX'))
 
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -66,11 +66,12 @@ def algolia_sync(arguments):
         comment(f'Syncing page {page + 1}')
         try:
             cursor.execute(f"""
-                        SELECT p.id, p.name, p.slug, p.description_json, pc.name AS category_name, pt.name AS product_type, pi.image
+                        SELECT p.id, p.name, p.slug, p.description_json, pc.name AS category_name, pt.name AS product_type, pi.image,
+					    (SELECT MIN(price_amount) FROM product_productvariant WHERE product_productvariant.product_id = p.id) AS price
                         FROM product_product p
                         LEFT JOIN product_category pc ON pc.id = p.category_id
                         LEFT JOIN product_producttype pt ON pt.id = p.product_type_id
-                        LEFT JOIN product_productimage pi ON pi.product_id = p.id
+                        LEFT JOIN product_productimage pi ON pi.product_id = p.id AND pi.id = (SELECT MIN(id) FROM product_productimage WHERE product_id = p.id)
                         LIMIT {per_page}
                         OFFSET {per_page * page}
                     """)
@@ -93,7 +94,8 @@ def algolia_sync(arguments):
                         'image': f'https://{AWS_MEDIA_BUCKET_NAME}.s3.amazonaws.com/{result["image"]}',
                         'category': result['category_name'],
                         'product_type': result['product_type'],
-                        'description': description
+                        'description': description,
+                        'price': '{:.2f}'.format(result['price'])
                     })
 
                 index.save_objects(objects)
