@@ -95,7 +95,7 @@ def algolia_sync(arguments):
                         'category': result['category_name'],
                         'product_type': result['product_type'],
                         'description': description,
-                        'price': '{:.2f}'.format(result['price'])
+                        'price': '{:.2f}'.format(float(result['price'])) if result['price'] else ''
                     })
 
                 index.save_objects(objects)
