@@ -72,6 +72,7 @@ def algolia_sync(arguments):
                         LEFT JOIN product_category pc ON pc.id = p.category_id
                         LEFT JOIN product_producttype pt ON pt.id = p.product_type_id
                         LEFT JOIN product_productimage pi ON pi.product_id = p.id AND pi.id = (SELECT MIN(id) FROM product_productimage WHERE product_id = p.id)
+                        WHERE p.is_published = 'TRUE'
                         LIMIT {per_page}
                         OFFSET {per_page * page}
                     """)
