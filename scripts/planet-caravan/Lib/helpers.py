@@ -16,4 +16,4 @@ def has_value(d=None):
     :param d:
     :return:
     """
-    return (type(d) is str and d is not "" and d is not "nan") or not math.isnan(d)
+    return (type(d) is str and d != "" and d != "nan") or not math.isnan(d)

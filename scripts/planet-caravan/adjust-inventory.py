@@ -1,20 +1,26 @@
 import sys
 from dotenv import load_dotenv
-
+from pprint import pprint
 from Lib.Saleor.Saleor import Saleor
-from Lib.ShopKeep.ShopKeep import ShopKeep
+from Lib.ShopKeep.SaleorToShopKeep import SaleorToShopKeep
 
 
 def run_process(arguments):
     environment = 'production'
-    if len(arguments) and arguments[1] == '--local':
+
+    if len(arguments) >= 2 and arguments[1] == '--local':
         del arguments[1]
         environment = 'local'
         load_dotenv()
 
-    s = Saleor(environment)
-    s.import_all(arguments[1], arguments[2])
 
+    s = Saleor(environment)
+    s.db_connect()
+    adjustments = s.get_adjustments()
+
+
+    sk = SaleorToShopKeep(environment, adjustments)
+    sk.run(s.mark_adjusted)
 
 
 if __name__ == '__main__':

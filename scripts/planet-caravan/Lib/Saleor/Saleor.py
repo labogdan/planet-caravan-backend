@@ -1089,3 +1089,41 @@ class Saleor:
         return f"""
             {{"blocks": [{{"key": "{key}", "data": {{}}, "text": "{text}", "type": "unstyled", "depth": 0, "entityRanges": [], "inlineStyleRanges": []}}], "entityMap": {{}}}}
         """.strip()
+
+    def get_adjustments(self):
+        info(f"Finding orders to sync...")
+
+        order_query = """
+        SELECT o.id AS order_id, ol.variant_id, ol.quantity, p.name
+            FROM order_order o
+            LEFT JOIN order_orderline ol ON ol.order_id = o.id
+            LEFT JOIN product_productvariant pv ON ol.variant_id = pv.id
+            LEFT JOIN product_product p ON pv.product_id = p.id
+            WHERE variant_id IS NOT NULL AND NOT EXISTS (SELECT os.id FROM order_ordersync os WHERE os.order_id = o.id)
+        """
+        cursor = self.db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        cursor.execute(order_query)
+        items = cursor.fetchall()
+
+        to_sync = {}
+        for item in items:
+            if item['order_id'] not in to_sync.keys():
+                to_sync[item['order_id']] = {}
+
+            if item['variant_id'] not in to_sync[item['order_id']]:
+                to_sync[item['order_id']][item['variant_id']] = {
+                    'title': item['name'],
+                    'adjustment': 0
+                }
+
+            to_sync[item['order_id']][item['variant_id']]['adjustment'] -= item['quantity']
+
+        return to_sync
+
+    def mark_adjusted(self, order_id, status=0):
+        cursor = self.db.cursor()
+        cursor.execute("""
+            INSERT INTO order_ordersync (order_id, status, synced_at)
+            VALUES (%s, %s, NOW())
+        """, (order_id,status))

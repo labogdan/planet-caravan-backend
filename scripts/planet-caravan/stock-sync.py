@@ -2,7 +2,7 @@ import sys
 from dotenv import load_dotenv
 
 from Lib.Saleor.Saleor import Saleor
-from Lib.ShopKeep.ShopKeep import ShopKeep
+from Lib.ShopKeep.ShopKeepToSaleor import ShopKeepToSaleor
 
 
 def run_process(arguments):
@@ -14,8 +14,6 @@ def run_process(arguments):
 
     sk = ShopKeep(environment)
     stock_file = sk.run()
-
-    print(stock_file)
 
     s = Saleor(environment)
     s.update_stock(stock_file)

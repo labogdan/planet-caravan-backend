@@ -9,7 +9,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-class ShopKeep:
+class ShopKeepToSaleor:
     def __init__(self, environment):
         self.environment = environment
         self.timeout = int(os.getenv('SK_TIMEOUT'))

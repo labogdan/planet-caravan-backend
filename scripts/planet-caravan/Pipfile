@@ -9,6 +9,7 @@ selenium = "==3.141.0"
 pandas = "*"
 psycopg2 = "*"
 psycopg2-binary = "*"
+boto3 = "*"
 
 [dev-packages]
 

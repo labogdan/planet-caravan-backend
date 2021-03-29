@@ -529,3 +529,12 @@ class OrderEvent(models.Model):
 
     def __repr__(self):
         return f"{self.__class__.__name__}(type={self.type!r}, user={self.user!r})"
+
+class OrderSync(models.Model):
+    order = models.ForeignKey(
+        Order, related_name="syncssy", editable=False, on_delete=models.CASCADE
+    )
+
+    synced_at = models.DateTimeField(default=None, editable=False)
+
+    status = models.PositiveIntegerField(default=0)
