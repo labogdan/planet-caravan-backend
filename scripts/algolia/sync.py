@@ -39,7 +39,13 @@ def algolia_sync(arguments):
 
     client = SearchClient.create(os.getenv('ALGOLIA_APPLICATION_ID'),
                                  os.getenv('ALGOLIA_ADMIN_KEY'))
-    index = client.init_index(os.getenv('ALGOLIA_INDEX'))
+
+    index_name = os.getenv('ALGOLIA_INDEX')
+    temp_index_name = f'{index_name}_temp'
+
+    index = client.init_index(index_name)
+    temp_index = client.init_index(temp_index_name)
+
 
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     per_page = 25
@@ -99,12 +105,15 @@ def algolia_sync(arguments):
                         'price': '{:.2f}'.format(float(result['price'])) if result['price'] else ''
                     })
 
-                index.save_objects(objects)
+                temp_index.save_objects(objects)
 
         except Exception as e:
             error(f'Error syncing.')
             error(e)
             return False
+
+    comment("Moving temp index to production...")
+    client.move_index(temp_index_name, index_name)
     print("")
     info("Done")
 
