@@ -12,7 +12,7 @@ def run_process(arguments):
         environment = 'local'
         load_dotenv()
 
-    sk = ShopKeep(environment)
+    sk = ShopKeepToSaleor(environment)
     stock_file = sk.run()
 
     s = Saleor(environment)

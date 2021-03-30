@@ -298,8 +298,8 @@ class Saleor:
                         cursor.execute("""
                             SELECT id
                             FROM product_attributevalue
-                            WHERE LOWER(slug) = %s
-                            LIMIT 1""", (value.slug,))
+                            WHERE LOWER(slug) = %s AND attribute_id = %s
+                            LIMIT 1""", (value.slug, v_attribute.id))
 
                         result = cursor.fetchone()
                         if result is None:
@@ -309,7 +309,7 @@ class Saleor:
                             VALUES(%s, %s, %s, %s)
                             ON CONFLICT (attribute_id, slug) DO NOTHING
                             RETURNING id
-                        """, (value.value, value.slug, value.slug, v_attribute.id))
+                        """, (value.value, value.slug, '', v_attribute.id))
 
                             value.id = cursor.fetchone()[0]
                             comment(f'Variant Attribute Value {value.value} - Created')

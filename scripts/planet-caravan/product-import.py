@@ -2,7 +2,7 @@ import sys
 from dotenv import load_dotenv
 
 from Lib.Saleor.Saleor import Saleor
-from Lib.ShopKeep.ShopKeepToSaleor import ShopKeepToSaleor
+# from Lib.ShopKeep.ShopKeepToSaleor import ShopKeepToSaleor
 
 
 def run_process(arguments):
@@ -12,7 +12,7 @@ def run_process(arguments):
         environment = 'local'
         load_dotenv()
 
-    s = ShopKeepToSaleor(environment)
+    s = Saleor(environment)
     s.import_all(arguments[1], arguments[2])
 
 

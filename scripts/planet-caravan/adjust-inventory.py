@@ -13,11 +13,12 @@ def run_process(arguments):
         environment = 'local'
         load_dotenv()
 
-
     s = Saleor(environment)
     s.db_connect()
     adjustments = s.get_adjustments()
 
+    if len(adjustments.keys()) < 1:
+        return
 
     sk = SaleorToShopKeep(environment, adjustments)
     sk.run(s.mark_adjusted)
