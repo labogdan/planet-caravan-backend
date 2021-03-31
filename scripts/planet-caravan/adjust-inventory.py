@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from pprint import pprint
 from Lib.Saleor.Saleor import Saleor
 from Lib.ShopKeep.SaleorToShopKeep import SaleorToShopKeep
-
+from pprint import pprint
 
 def run_process(arguments):
     environment = 'production'
@@ -17,7 +17,8 @@ def run_process(arguments):
     s.db_connect()
     adjustments = s.get_adjustments()
 
-    if len(adjustments.keys()) < 1:
+
+    if adjustments and len(adjustments.keys()) < 1:
         return
 
     sk = SaleorToShopKeep(environment, adjustments)

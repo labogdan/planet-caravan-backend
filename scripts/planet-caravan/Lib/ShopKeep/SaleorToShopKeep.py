@@ -105,16 +105,17 @@ class SaleorToShopKeep:
             try:
                 for item in order.values():
                     search_field = self.browser.find_element_by_id('item_input')
-                    search_field.send_keys(item['title'])
+                    search_field.send_keys(item['search'])
 
                     dropdown_path = '//*[@id="ui-id-1"]'
-                    title = item['title']
-                    variant = item['variant'] if 'variant' in item else ''
+                    # title = item['title']
+                    # variant = item['variant'] if 'variant' in item else ''
 
-                    full_title = f'{title}{f" - {variant}" if variant else ""}'
-                    first_result = f'{dropdown_path}/li/a[contains(text(), "{full_title}")]'
+                    # full_title = f'{title}{f" - {variant}" if variant else ""}'
+                    first_result = f'{dropdown_path}/li/a[position() = 1]'
                     self.wait_then_click(first_result)
 
+                    sleep(50)
                     qty_path = '//*[@id="quantity_input"]'
                     qty_input = self.wait_for_element(qty_path, self.timeout)
 
