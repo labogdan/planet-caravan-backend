@@ -28,11 +28,19 @@ from jwt.exceptions import PyJWTError
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 
+import logging
+import hashlib
+from django.core.cache import cache
+
+
+logger = logging.getLogger('django.server')
+
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
 unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
 handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 
+QUERY_CACHE_TIME = 60 * 60
 
 def tracing_wrapper(execute, sql, params, many, context):
     conn: DatabaseWrapper = context["connection"]
@@ -165,6 +173,21 @@ class GraphQLView(View):
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
         execution_result = self.execute_graphql_request(request, data)
         status_code = 200
+
+        # Cache the query
+        cache_key = None
+        if 'query' in data:
+            key = data['query']
+            if 'variables' in data:
+                key += str(data['variables'])
+
+            hash = hashlib.md5(key.encode())
+            cache_key = hash.hexdigest()
+
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return cached
+
         if execution_result:
             response = {}
             if execution_result.errors:
@@ -178,6 +201,9 @@ class GraphQLView(View):
             result: Optional[Dict[str, List[Any]]] = response
         else:
             result = None
+
+        if cache_key:
+            cache.set(cache_key, (result, status_code), QUERY_CACHE_TIME)
 
         return result, status_code
 

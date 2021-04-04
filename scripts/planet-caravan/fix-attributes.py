@@ -176,7 +176,7 @@ def fix_things(arguments):
         products = cursor.fetchall()
 
         for product in products:
-            info(product['name'])
+            # info(product['name'])
 
             # Get valid attributes
             if product['product_type_id'] not in product_type_attributes.keys():
@@ -202,7 +202,7 @@ def fix_things(arguments):
 
                 associated_attribute = attributes[attribute['attribute_id']]
 
-                comment(f"{attribute['attributevalue_id']}: {attribute['name']}")
+                # comment(f"{attribute['attributevalue_id']}: {attribute['name']}")
                 if attribute['attributevalue_id'] in associated_attribute['values'].keys():
                     # Seems fine
                     continue
@@ -222,7 +222,6 @@ def fix_things(arguments):
                 desired_value = attribute['name']
                 match = list(filter(lambda x: x['name'] == desired_value, associated_attribute['values'].values()))
 
-                # DEV
                 if len(match):
                     warning('Matched on other attribute, changing value ID in assignment.')
                     warning(f"{attribute['id']} : {match[0]['id']}")
