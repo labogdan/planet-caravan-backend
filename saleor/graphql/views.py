@@ -171,12 +171,17 @@ class GraphQLView(View):
     def get_response(
         self, request: HttpRequest, data: dict
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
-        execution_result = self.execute_graphql_request(request, data)
-        status_code = 200
 
-        # Cache the query
+        # Check the cache for queries that contain these strings
+        checks = [
+            'query Category',
+            'query ProductPrices',
+            'query CategoryProductsNew',
+            'query ProductsList'
+        ]
+
         cache_key = None
-        if 'query' in data:
+        if 'query' in data and any([c in data['query'] for c in checks]):
             key = data['query']
             if 'variables' in data:
                 key += str(data['variables'])
@@ -187,6 +192,9 @@ class GraphQLView(View):
             cached = cache.get(cache_key)
             if cached is not None:
                 return cached
+
+        execution_result = self.execute_graphql_request(request, data)
+        status_code = 200
 
         if execution_result:
             response = {}
