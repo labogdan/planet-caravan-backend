@@ -299,6 +299,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # Create the checkout lines
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
+                if quantity < 1:
+                    continue
                 try:
                     add_variant_to_checkout(instance, variant, quantity)
                 except InsufficientStock as exc:
@@ -375,6 +377,8 @@ class CheckoutLinesAdd(BaseMutation):
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
+                if quantity < 1:
+                    continue
                 try:
                     add_variant_to_checkout(
                         checkout, variant, quantity, replace=replace
