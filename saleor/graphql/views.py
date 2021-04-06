@@ -180,6 +180,8 @@ class GraphQLView(View):
             'query ProductsList'
         ]
 
+        cache_enabled = 'cache_bust' not in list(request.GET.keys())
+
         cache_key = None
         if 'query' in data and any([c in data['query'] for c in checks]):
             key = data['query']
@@ -189,9 +191,10 @@ class GraphQLView(View):
             hash = hashlib.md5(key.encode())
             cache_key = hash.hexdigest()
 
-            cached = cache.get(cache_key)
-            if cached is not None:
-                return cached
+            if cache_enabled:
+                cached = cache.get(cache_key)
+                if cached is not None:
+                    return cached
 
         execution_result = self.execute_graphql_request(request, data)
         status_code = 200
