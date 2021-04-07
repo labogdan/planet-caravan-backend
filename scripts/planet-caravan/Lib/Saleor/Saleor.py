@@ -1101,8 +1101,8 @@ class Saleor:
             LEFT JOIN product_productvariant pv ON ol.variant_id = pv.id
             LEFT JOIN product_product p ON pv.product_id = p.id
             WHERE variant_id IS NOT NULL
+            AND NOT EXISTS (SELECT os.id FROM order_ordersync os WHERE os.order_id = o.id)
         """
-        #  AND NOT EXISTS (SELECT os.id FROM order_ordersync os WHERE os.order_id = o.id)
         cursor = self.db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         cursor.execute(order_query)
