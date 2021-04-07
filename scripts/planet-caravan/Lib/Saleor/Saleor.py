@@ -73,7 +73,7 @@ class Saleor:
                 WHERE product_productvariant.id = warehouse_stock.product_variant_id
                     AND LOWER(product_productvariant.sku) = %s
                     AND warehouse_stock.warehouse_id = %s
-            """, (inventory, str(sku).lower(), self.warehouse_id))
+            """, (max(0, inventory), str(sku).lower(), self.warehouse_id))
 
     def import_all(self, file='', image_base=''):
         """
