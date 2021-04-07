@@ -66,14 +66,17 @@ class Saleor:
 
             info(f'Updating {sku} to {inventory}')
 
-            cursor.execute("""
-            UPDATE warehouse_stock
-                SET quantity = %s
-                FROM product_productvariant
-                WHERE product_productvariant.id = warehouse_stock.product_variant_id
-                    AND LOWER(product_productvariant.sku) = %s
-                    AND warehouse_stock.warehouse_id = %s
-            """, (max(0, inventory), str(sku).lower(), self.warehouse_id))
+            try:
+                cursor.execute("""
+                UPDATE warehouse_stock
+                    SET quantity = %s
+                    FROM product_productvariant
+                    WHERE product_productvariant.id = warehouse_stock.product_variant_id
+                        AND LOWER(product_productvariant.sku) = %s
+                        AND warehouse_stock.warehouse_id = %s
+                """, (max(0, inventory), str(sku).lower(), self.warehouse_id))
+            except Exception as e:
+                error(e)
 
     def import_all(self, file='', image_base=''):
         """
