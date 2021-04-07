@@ -9,6 +9,7 @@ from .graphql.api import schema
 from .graphql.views import GraphQLView
 from .plugins.views import handle_plugin_webhook
 from .product.views import digital_product
+from .graphql.utils.cache import bust_query_cache
 
 urlpatterns = [
     url(r"^graphql/", csrf_exempt(GraphQLView.as_view(schema=schema)), name="api"),
@@ -23,6 +24,7 @@ urlpatterns = [
         handle_plugin_webhook,
         name="plugins",
     ),
+    url('bust-cache', bust_query_cache),
 ]
 
 if settings.DEBUG:

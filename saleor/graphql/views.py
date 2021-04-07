@@ -28,12 +28,9 @@ from jwt.exceptions import PyJWTError
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 
-import logging
 import hashlib
 from django.core.cache import cache
 
-
-logger = logging.getLogger('django.server')
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
@@ -189,7 +186,7 @@ class GraphQLView(View):
                 key += str(data['variables'])
 
             hash = hashlib.md5(key.encode())
-            cache_key = hash.hexdigest()
+            cache_key = f'query-{hash.hexdigest()}'
 
             if cache_enabled:
                 cached = cache.get(cache_key)
