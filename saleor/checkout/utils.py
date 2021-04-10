@@ -93,7 +93,7 @@ def add_variant_to_checkout(
     If `replace` is truthy then any previous quantity is discarded instead
     of added to.
     """
-    if not variant.product.is_published:
+    if not variant.product.is_published and quantity >= 1:
         raise ProductNotPublished()
 
     new_quantity, line = check_variant_in_stock(
