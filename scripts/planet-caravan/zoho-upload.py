@@ -54,27 +54,19 @@ def fix_things(arguments):
 
     cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    df = pd.read_csv(arguments[1], converters={**{k: str for k in ['SKU', 'UPC', 'NAME']}})
+    df = pd.read_csv(arguments[1], converters={**{k: str for k in ['SKU', 'Record Id']}})
     for (i, row) in df.iterrows():
         sku = str(row.loc['SKU']).strip("'")
-        upc = str(row.loc['UPC']).strip("'")
-        name = str(row.loc['NAME']).strip()
+        zoho_id = str(row.loc['Record Id']).strip("zcrm_")
 
-        info(f'{sku if sku else name} | {upc}')
+        info(f'{sku} | {zoho_id}')
 
-        if not sku:
-            cursor.execute("""
-            UPDATE product_product p
-                SET private_metadata = jsonb_set(p.private_metadata, '{SHOPKEEP_UPC}', %s, true)
-                WHERE p.name = %s
-            """, (upc, name))
-        else:
-            cursor.execute("""
-            UPDATE product_product p
-                SET private_metadata = jsonb_set(p.private_metadata, '{SHOPKEEP_UPC}', %s, true)
-                FROM product_productvariant pv
-                WHERE p.id = pv.product_id AND pv.sku = %s
-            """, (upc, sku))
+        cursor.execute("""
+        UPDATE product_product p
+            SET private_metadata = jsonb_set(p.private_metadata, '{ZOHO_ID}', %s, true)
+            FROM product_productvariant pv
+            WHERE p.id = pv.product_id AND pv.sku = %s
+        """, (zoho_id, sku))
 
 if __name__ == '__main__':
     fix_things(sys.argv)
