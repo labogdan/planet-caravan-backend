@@ -107,14 +107,15 @@ class SaleorToShopKeep:
         for order_id, order in self.adjustments.items():
             info(f'Syncing Order #{order_id}')
 
-            try:
-                for item in order.values():
+            order_okay = True
+            for item in order.values():
+                try:
                     search_field = self.browser.find_element_by_id('item_input')
                     comment(f'Searching {item["search"]}')
                     search_field.send_keys(item['search'])
 
                     # Give the browser time to destroy/recreate the result dropdown
-                    sleep(4)
+                    sleep(2)
 
                     dropdown_path = '//*[@id="ui-id-1"]'
                     # title = item['title']
@@ -134,10 +135,9 @@ class SaleorToShopKeep:
                     self.wait_then_click(submit_path, self.timeout)
 
                     sleep(1)
-                comment('Success')
-                mark_adjusted(order_id, 1)
-            except Exception as e:
-                comment('Failure')
-                error(e)
-                error(traceback.format_exc())
-                mark_adjusted(order_id, 0)
+                except Exception as e:
+                    error(e)
+                    error(traceback.format_exc())
+                    order_okay = False
+
+            mark_adjusted(order_id, 1 if order_okay else 0)
