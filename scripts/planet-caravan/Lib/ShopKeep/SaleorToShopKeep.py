@@ -115,7 +115,7 @@ class SaleorToShopKeep:
                     search_field.send_keys(item['search'])
 
                     # Give the browser time to destroy/recreate the result dropdown
-                    sleep(2)
+                    sleep(3)
 
                     dropdown_path = '//*[@id="ui-id-1"]'
                     # title = item['title']
@@ -125,7 +125,7 @@ class SaleorToShopKeep:
                     first_result = f'{dropdown_path}/li/a[position() = 1]'
                     self.wait_then_click(first_result)
 
-                    sleep(2)
+                    sleep(3)
                     qty_path = '//*[@id="quantity_input"]'
                     qty_input = self.wait_for_element(qty_path, self.timeout)
 
@@ -139,5 +139,6 @@ class SaleorToShopKeep:
                     error(e)
                     error(traceback.format_exc())
                     order_okay = False
+                    sleep(1)
 
             mark_adjusted(order_id, 1 if order_okay else 0)
