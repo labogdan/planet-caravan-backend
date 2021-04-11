@@ -114,7 +114,7 @@ class SaleorToShopKeep:
                     search_field.send_keys(item['search'])
 
                     # Give the browser time to destroy/recreate the result dropdown
-                    sleep(2)
+                    sleep(4)
 
                     dropdown_path = '//*[@id="ui-id-1"]'
                     # title = item['title']
