@@ -9,20 +9,15 @@
     </mj-raw>
     <mj-include path="./shared/header.mjml" />
     <mj-section>
+      <mj-column width="150px">
+        <mj-image href="https://planetcaravansmokeshop.com/images/pc-logo.png" width="150px" />
+      </mj-column>
       <mj-column>
-        <mj-text font-size="16px">
-          {% trans "Hi!" context "Standard e-mail greeting" %}
-        </mj-text>
-        <mj-text>
-          {% if order_details_url %}
-            {% blocktrans trimmed context "Order confirmation e-mail text with payment details" %}
-              Thank you for your order. Below is the list of ordered products. To see your payment details please visit: <a href="{{ order_details_url }}">{{ order_details_url }}</a>
-            {% endblocktrans %}
-          {% else %}
+        <mj-text font-size="18px">
             {% blocktrans trimmed context "Order confirmation e-mail text" %}
-              Thank you for your order. Below is the list of ordered products.
+              Thank you for ordering from Planet Caravan.<br />
+              Below are your order details.
             {% endblocktrans %}
-          {% endif %}
         </mj-text>
       </mj-column>
     </mj-section>
@@ -56,6 +51,13 @@
           </tbody>
         </mj-table>
       </mj-column>
+    </mj-section>
+    <mj-section>
+        <mj-column>
+          <mj-text>
+            Please contact us if you are experiencing any issues with your order. <a style="color: #000000;" href="mailto:planetcaravanwebsite@gmail.com">planetcaravanwebsite@gmail.com</a>
+          </mj-text>
+        </mj-column>
     </mj-section>
     <mj-include path="./shared/footer.mjml" />
   </mj-body>

@@ -8,18 +8,32 @@
     </mj-raw>
     <mj-include path="./shared/header.mjml" />
     <mj-section>
+      <mj-column width="150px">
+        <mj-image href="https://planetcaravansmokeshop.com/images/logo-alt.png" width="150px" />
+      </mj-column>
       <mj-column>
-        <mj-text font-size="16px">
-          {% trans "Hi!" context "Standard e-mail greeting" %}
+        <mj-text font-size="22px" font-weight="bold">
+          {% trans "Order Confirmation" context "Standard e-mail greeting" %}
         </mj-text>
         <mj-text>
           {% blocktrans trimmed context "Payment confirmation e-mail text" %}
-            Thank you for your payment.
-            Your payment was successfully processed.
+            Thank you for ordering from Planet Caravan! <br />
+            Your payment has been processed.
           {% endblocktrans %}
+        </mj-text>
+        <mj-text>
+          Sincerely, <br />
+          Planet Caravan Smoke Shop
         </mj-text>
       </mj-column>
     </mj-section>
-    <mj-include path="./shared/footer.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-text>
+          Please contact us if you are experiencing any issues with your order: <a href="mailto:planetcaravanwebsite@gmail.com">planetcaravanwebsite@gmail.com</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+      <mj-include path="./shared/footer.mjml" />
   </mj-body>
 </mjml>
