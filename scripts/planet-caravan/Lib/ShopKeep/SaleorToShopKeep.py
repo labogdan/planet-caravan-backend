@@ -2,6 +2,7 @@ import os
 import glob
 from time import sleep
 from Lib.CLI import *
+import traceback
 
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
@@ -26,7 +27,10 @@ class SaleorToShopKeep:
                        "safebrowsing.enabled": True}
 
         chrome_options.add_experimental_option("prefs", preferences)
-        chrome_options.add_argument("--headless")
+
+        if self.environment != 'local':
+            chrome_options.add_argument("--headless")
+
         chrome_options.add_argument("--window-size=1920,1080")
 
         if self.environment == 'local':
@@ -83,8 +87,9 @@ class SaleorToShopKeep:
         return self.browser.find_element_by_xpath(xpath)
 
     def wait_then_click(self, xpath, max_time=10):
-        export_element = self.wait_for_element(xpath, max_time)
-        export_element.click()
+        element = self.wait_for_element(xpath, max_time)
+        sleep(0.05)
+        element.click()
 
     def navigate_to_adjustments(self):
         print("Navigating to adjustments page...")
@@ -105,7 +110,11 @@ class SaleorToShopKeep:
             try:
                 for item in order.values():
                     search_field = self.browser.find_element_by_id('item_input')
+                    comment(f'Searching {item["search"]}')
                     search_field.send_keys(item['search'])
+
+                    # Give the browser time to destroy/recreate the result dropdown
+                    sleep(2)
 
                     dropdown_path = '//*[@id="ui-id-1"]'
                     # title = item['title']
@@ -115,7 +124,7 @@ class SaleorToShopKeep:
                     first_result = f'{dropdown_path}/li/a[position() = 1]'
                     self.wait_then_click(first_result)
 
-                    sleep(50)
+                    sleep(2)
                     qty_path = '//*[@id="quantity_input"]'
                     qty_input = self.wait_for_element(qty_path, self.timeout)
 
@@ -130,4 +139,5 @@ class SaleorToShopKeep:
             except Exception as e:
                 comment('Failure')
                 error(e)
+                error(traceback.format_exc())
                 mark_adjusted(order_id, 0)
