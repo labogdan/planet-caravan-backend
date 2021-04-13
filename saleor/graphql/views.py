@@ -37,7 +37,7 @@ API_PATH = SimpleLazyObject(lambda: reverse("api"))
 unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
 handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 
-QUERY_CACHE_TIME = 60 * 60 * 6  # 6 Hours
+QUERY_CACHE_TIME = 60 * 60 * 24  # 24 Hours
 
 def tracing_wrapper(execute, sql, params, many, context):
     conn: DatabaseWrapper = context["connection"]
