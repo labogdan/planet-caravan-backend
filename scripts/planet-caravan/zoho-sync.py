@@ -154,7 +154,7 @@ def create_or_update_data(product: Product = None):
 
     product_result = cursor.fetchone()
 
-    if len(product_result):
+    if product_result:
         product.id = product_result[0]
     else:
         cursor.execute("""
