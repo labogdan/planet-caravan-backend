@@ -178,8 +178,7 @@ def create_or_update_data(product: Product = None):
 
                 # UPDATE clause
                 product.name, product.description, product.description_json,
-                product.type.id, product.category.id, product.private_metadata,
-                product.variants[0].sku
+                product.type.id, product.category.id, product.private_metadata
             ))
 
         product.id = cursor.fetchone()[0]
