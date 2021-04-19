@@ -242,6 +242,21 @@ def create_or_update_data(product: Product = None):
             DO NOTHING
         """, (product.collection.id, product.id))
 
+    # Add Warehouse entry
+    cursor.execute("""
+        SELECT id
+        FROM warehouse_warehouse
+        LIMIT 1""")
+
+    warehouse_id = cursor.fetchone()[0]
+
+    info(f'Creating warehouse entry: {warehouse_id}')
+    cursor.execute("""
+        INSERT INTO warehouse_stock (product_variant_id, quantity, warehouse_id)
+        VALUES(%s, %s, %s)
+        ON CONFLICT(product_variant_id, warehouse_id) DO NOTHING
+        """, (product.variants[0].id, 0, warehouse_id))
+
     return True
 
 
