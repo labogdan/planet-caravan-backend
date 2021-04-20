@@ -14,6 +14,7 @@ from Lib.Saleor.Category import Category
 from Lib.Saleor.ProductCollection import ProductCollection
 import psycopg2
 from psycopg2.extras import DictCursor
+from pprint import pprint
 
 oauth_token = None
 
@@ -79,7 +80,7 @@ def handle_raw_product(raw_product: dict = None):
     product = Product()
     product.name = raw_product['Product_Name']
     product.slug = handleize(raw_product['Product_Name'])
-    product.description = raw_product['Description_of_Product']
+    product.description = str(raw_product['Description_of_Product'])
     product.description_json = description_block(raw_product['Description_of_Product'])
     product.metadata = '{}'
     product.private_metadata = json.dumps({
@@ -156,6 +157,20 @@ def create_or_update_data(product: Product = None):
 
     if product_result:
         product.id = product_result[0]
+        cursor.execute("""
+            UPDATE product_product
+            SET id = product_product.id, name = %s,
+                description = %s, description_json = %s, product_type_id = %s,
+                category_id = %s, private_metadata = %s, updated_at = NOW()
+            WHERE id = %s
+           """,
+           (
+               # UPDATE clause
+               product.name, product.description, product.description_json,
+               product.type.id, product.category.id,
+               product.private_metadata,
+               product.id
+       ))
     else:
         cursor.execute("""
                INSERT INTO product_product
@@ -511,6 +526,7 @@ def do_import(arguments):
     parameters = {
         'page': 1,
         'per_page': 5,
+        # 'fields': 'Photo_1,Photo_2,SKU,Web_Available,Product_Name'
     }
 
     keep_going = True
@@ -525,10 +541,6 @@ def do_import(arguments):
             response_info = data['info']
 
             products = list(filter(lambda x: x['Web_Available'] is True, data['data']))
-
-            # DEV FILTER
-            products = list(
-                filter(lambda x: 'Website Test' in x['Product_Name'], products))
 
             for product in products:
                 handle_raw_product(product)
