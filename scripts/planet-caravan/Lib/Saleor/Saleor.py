@@ -1098,7 +1098,7 @@ class Saleor:
         info(f"Finding orders to sync...")
 
         order_query = """
-        SELECT o.id AS order_id, ol.variant_id, ol.quantity, p.name, p.private_metadata
+        SELECT o.id AS order_id, ol.variant_id, ol.quantity, p.name, p.private_metadata, pv.sku
             FROM order_order o
             LEFT JOIN order_orderline ol ON ol.order_id = o.id
             LEFT JOIN product_productvariant pv ON ol.variant_id = pv.id
@@ -1114,7 +1114,7 @@ class Saleor:
         to_sync = {}
         for item in items:
             metafields = item['private_metadata']
-            search = metafields['SHOPKEEP_UPC'] if 'SHOPKEEP_UPC' in metafields.keys() else item['name']
+            search = item['sku']
 
             if item['order_id'] not in to_sync.keys():
                 to_sync[item['order_id']] = {}
