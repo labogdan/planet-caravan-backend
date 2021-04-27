@@ -138,7 +138,8 @@ def handle_raw_product(raw_product: dict = None):
 
     create_or_update_data(product)
 
-    handle_images(product, raw_product['Product_Photos'])
+    if 'Product_Photos' in raw_product and type(raw_product['Product_Photos']) == list:
+        handle_images(product, raw_product['Product_Photos'])
 
 
 def create_or_update_data(product: Product = None):
