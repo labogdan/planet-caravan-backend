@@ -318,7 +318,7 @@ def handle_images(product: Product, images: list) -> None:
             SELECT COUNT(*) AS count
             FROM product_productimage
             WHERE product_id = %s and image = %s
-        """, (product.id, filename))
+        """, (product.id, f"products/{filename}"))
 
         existing_image = cursor.fetchone()[0]
 
