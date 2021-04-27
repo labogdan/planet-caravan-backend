@@ -83,7 +83,7 @@ def handle_raw_product(raw_product: dict = None):
 
     # Product
     product = Product()
-    product.name = raw_product['Product_Name']
+    product.name = raw_product['Product_Name'].split('|')[0].strip()
     product.slug = handleize(raw_product['Product_Name'])
     product.description = str(raw_product['Description'])
     product.description_json = description_block(raw_product['Description'])
