@@ -1,4 +1,7 @@
 import json
+import mimetypes
+import urllib
+
 import requests
 import os
 import sys
@@ -15,6 +18,8 @@ from Lib.Saleor.ProductCollection import ProductCollection
 import psycopg2
 from psycopg2.extras import DictCursor
 from pprint import pprint
+import boto3
+import pickle
 
 oauth_token = None
 
@@ -80,8 +85,8 @@ def handle_raw_product(raw_product: dict = None):
     product = Product()
     product.name = raw_product['Product_Name']
     product.slug = handleize(raw_product['Product_Name'])
-    product.description = str(raw_product['Description_of_Product'])
-    product.description_json = description_block(raw_product['Description_of_Product'])
+    product.description = str(raw_product['Description'])
+    product.description_json = description_block(raw_product['Description'])
     product.metadata = '{}'
     product.private_metadata = json.dumps({
         'ZOHO_ID': raw_product['id']
@@ -132,6 +137,8 @@ def handle_raw_product(raw_product: dict = None):
     product.collections.append(collection)
 
     create_or_update_data(product)
+
+    handle_images(product, raw_product['Product_Photos'])
 
 
 def create_or_update_data(product: Product = None):
@@ -273,6 +280,65 @@ def create_or_update_data(product: Product = None):
         """, (product.variants[0].id, 0, warehouse_id))
 
     return True
+
+def handle_images(product: Product, images: list) -> None:
+    global oauth_token
+    global cursor
+
+    s3 = None
+    AWS_MEDIA_BUCKET_NAME = os.environ.get("AWS_MEDIA_BUCKET_NAME")
+    AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+
+
+    zoho_id = json.loads(product.private_metadata)['ZOHO_ID']
+
+    url = f'https://www.zohoapis.com/crm/v2/Products/{zoho_id}/Attachments'
+
+    headers = {
+        'Authorization': f'Zoho-oauthtoken {oauth_token}',
+    }
+
+    for image in images:
+        attachment_id = image['attachment_Id']
+        filename = image['file_Name']
+
+        # Check if filename exists already
+        cursor.execute("""
+            SELECT COUNT(*) AS count
+            FROM product_productimage
+            WHERE product_id = %s and image = %s
+        """, (product.id, filename))
+
+        existing_image = cursor.fetchone()[0]
+
+        if not existing_image:
+            warning(f'Uploading Image: {filename}')
+            session = boto3.Session(
+                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            )
+            s3 = session.resource('s3')
+
+            mtype = mimetypes.MimeTypes().guess_type(filename)[0]
+
+            img_url = f'{url}/{attachment_id}'
+            info(img_url)
+            req = urllib.request.Request(img_url, headers=headers)
+            response = urllib.request.urlopen(req)
+            img_bytes = response.read()
+
+            s3.Bucket(AWS_MEDIA_BUCKET_NAME).put_object(
+                Body=img_bytes,
+                Key=f'products/{filename}',
+                ContentType=mtype)
+
+            cursor.execute("""
+                INSERT INTO product_productimage(product_id, image, ppoi, alt)
+                VALUES(%s, %s, %s, %s)
+            """, (product.id, filename, '0.5x0.5', ''))
+        else:
+            warning(f'Existing Image: {filename}')
 
 
 def handle_product_type(pt: ProductType = None) -> int:
@@ -525,11 +591,18 @@ def do_import(arguments):
 
     parameters = {
         'page': 1,
-        'per_page': 5,
-        # 'fields': 'Photo_1,Photo_2,SKU,Web_Available,Product_Name'
+        'per_page': 200,
     }
 
     keep_going = True
+
+    # pickle_file = 'products.pickle'
+
+    # if os.path.exists(pickle_file):
+    #     products = pickle.load(open(pickle_file, 'rb'))
+    #     info('Loaded pickle file')
+    #     handle_raw_product(products[0])
+    #     return
 
     while keep_going:
 
@@ -541,6 +614,9 @@ def do_import(arguments):
             response_info = data['info']
 
             products = list(filter(lambda x: x['Web_Available'] is True, data['data']))
+
+            # pickle.dump(products, open(pickle_file, 'wb'))
+            # info('Wrote to pickle file')
 
             for product in products:
                 handle_raw_product(product)
