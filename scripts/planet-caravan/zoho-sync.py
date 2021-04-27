@@ -109,13 +109,13 @@ def handle_raw_product(raw_product: dict = None):
 
     # Category
 
-    if 'Category' not in raw_product.keys() or type(raw_product['Category']) is None:
+    if 'Category' not in raw_product.keys() or raw_product['Category'] is None:
         error(f'Product {product.name} has no Category')
         return
 
     parent_category = Category(raw_product['Category'])
 
-    if 'Collection' not in raw_product.keys() or type(raw_product['Collection']) is None:
+    if 'Collection' not in raw_product.keys() or raw_product['Collection'] is None:
         error(f'Product {product.name} has no Collection')
         return
 
@@ -147,8 +147,8 @@ def handle_raw_product(raw_product: dict = None):
 
     create_or_update_data(product)
 
-    if 'Product_Photos' in raw_product and type(raw_product['Product_Photos']) == list:
-        handle_images(product, raw_product['Product_Photos'])
+    # if 'Product_Photos' in raw_product and type(raw_product['Product_Photos']) == list:
+    #     handle_images(product, raw_product['Product_Photos'])
 
 
 def create_or_update_data(product: Product = None):
