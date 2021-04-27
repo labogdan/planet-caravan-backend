@@ -108,7 +108,14 @@ def handle_raw_product(raw_product: dict = None):
     pt.slug = handleize(raw_product['Category'])
 
     # Category
+
+    if 'Category' not in raw_product.keys() or type(raw_product['Category']) is None:
+        error(f'Product {product.name} has no Category')
+
     parent_category = Category(raw_product['Category'])
+
+    if 'Collection' not in raw_product.keys() or type(raw_product['Collection']) is None:
+        error(f'Product {product.name} has no Collection')
 
     child_category = Category(raw_product['Collection'])
     child_category.level = 1
