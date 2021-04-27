@@ -95,7 +95,7 @@ def handle_raw_product(raw_product: dict = None):
     # Variant
     variant = Variant()
     variant.name = raw_product['Product_Name']
-    variant.sku = raw_product['SKU']
+    variant.sku = raw_product['SKU'].strip("'")
     variant.cost_price_amount = raw_product['Cost']
     variant.weight = 0
     variant.price_amount = raw_product['Unit_Price']

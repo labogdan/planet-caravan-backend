@@ -147,13 +147,17 @@ class ShopKeepToSaleor:
 
         raise Exception("Stock file download taking too long.")
 
-    def wait_then_click(self, xpath, max_time=10):
+    def wait_for_element(self, xpath, max_time=10):
         if not max_time:
             max_time = self.timeout
 
         element_present = EC.presence_of_element_located((By.XPATH, xpath))
         WebDriverWait(self.browser, max_time).until(element_present)
 
-        export_element = self.browser.find_element_by_xpath(xpath)
+        return self.browser.find_element_by_xpath(xpath)
 
-        export_element.click()
+    def wait_then_click(self, xpath, max_time=10):
+        element = self.wait_for_element(xpath, max_time)
+        sleep(0.05)
+        element.click()
+
