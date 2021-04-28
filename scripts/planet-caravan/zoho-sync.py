@@ -108,18 +108,17 @@ def handle_raw_product(raw_product: dict = None):
     pt.slug = handleize(raw_product['Category'])
 
     # Category
+    if 'Department' not in raw_product.keys() or raw_product['Department'] is None:
+        error(f'Product {product.name} has no Department')
+        return
+
+    parent_category = Category(raw_product['Department'])
 
     if 'Category' not in raw_product.keys() or raw_product['Category'] is None:
         error(f'Product {product.name} has no Category')
         return
 
-    parent_category = Category(raw_product['Category'])
-
-    if 'Collection' not in raw_product.keys() or raw_product['Collection'] is None:
-        error(f'Product {product.name} has no Collection')
-        return
-
-    child_category = Category(raw_product['Collection'])
+    child_category = Category(raw_product['Category'])
     child_category.level = 1
     parent_category.children.append(child_category)
 
@@ -138,17 +137,21 @@ def handle_raw_product(raw_product: dict = None):
             pt.add_attribute(product_attribute)
     product.type = pt
 
-    # Collection
-    collection = ProductCollection()
-    collection.name = raw_product['Collection']
-    collection.slug = handleize(raw_product['Collection'])
+    # Collections
+    if 'Collection' in raw_product.keys() and type(raw_product['Collection']) is str:
+        for collection_name in raw_product['Collection'].split(','):
+            collection_name = collection_name.strip()
+            collection = ProductCollection()
+            collection.name = collection_name
+            collection.slug = handleize(collection_name)
 
-    product.collections.append(collection)
+            product.collections.append(collection)
 
     create_or_update_data(product)
 
-    # if 'Product_Photos' in raw_product and type(raw_product['Product_Photos']) == list:
-    #     handle_images(product, raw_product['Product_Photos'])
+    # Images
+    if 'Product_Photos' in raw_product and type(raw_product['Product_Photos']) == list:
+        handle_images(product, raw_product['Product_Photos'])
 
 
 def create_or_update_data(product: Product = None):
@@ -160,7 +163,7 @@ def create_or_update_data(product: Product = None):
     product.category = handle_product_category(product.category)
     comment(f'Product category ID: {product.category.children[0].id}')
 
-    product.collection = handle_product_collection(product.collections[0])
+    product.collections = handle_product_collection(product.collections)
 
     # Create the product, matched by SKU
     cursor.execute("""
@@ -264,15 +267,16 @@ def create_or_update_data(product: Product = None):
     except:
         pass
 
-    # Add To Collection
-    if product.collection:
-        warning(f'Adding to collection: {product.id} in {product.collection.id}')
-        cursor.execute("""
-            INSERT INTO product_collectionproduct(collection_id, product_id)
-                VALUES(%s, %s)
-            ON CONFLICT (collection_id, product_id)
-            DO NOTHING
-        """, (product.collection.id, product.id))
+    # Add To Collections
+    if len(product.collections):
+        for collection in product.collections:
+            warning(f'Adding to collection: {product.id} in {collection.id}')
+            cursor.execute("""
+                INSERT INTO product_collectionproduct(collection_id, product_id)
+                    VALUES(%s, %s)
+                ON CONFLICT (collection_id, product_id)
+                DO NOTHING
+            """, (collection.id, product.id))
 
     # Add Warehouse entry
     cursor.execute("""
@@ -346,7 +350,7 @@ def handle_images(product: Product, images: list) -> None:
             cursor.execute("""
                 INSERT INTO product_productimage(product_id, image, ppoi, alt)
                 VALUES(%s, %s, %s, %s)
-            """, (product.id, filename, '0.5x0.5', ''))
+            """, (product.id, f"products/{filename}", '0.5x0.5', ''))
         else:
             warning(f'Existing Image: {filename}')
 
@@ -480,32 +484,33 @@ def handle_product_category(cat: Category = None) -> Category:
     return cat
 
 
-def handle_product_collection(collection: ProductCollection = None) -> ProductCollection:
+def handle_product_collection(collections: list = None) -> None:
     global cursor
-    warning('COLLECTION')
+    warning('COLLECTIONS')
 
-    cursor.execute("""
-            INSERT INTO product_collection
-                (name, slug, background_image, seo_description, seo_title,
-                is_published, description,
-                publication_date, background_image_alt, description_json,
-                metadata, private_metadata)
-            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT(slug) DO UPDATE
-                SET id = product_collection.id, name = %s
-            RETURNING id
-        """, (
-                # INSERT clause
-                collection.name, collection.slug, '', '', '', 'True', '',
-                'NOW()', '', '{}', '{}', '{}',
-                # UPDATE clause
-                collection.name
-            ))
+    for c, collection in enumerate(collections):
+        cursor.execute("""
+                INSERT INTO product_collection
+                    (name, slug, background_image, seo_description, seo_title,
+                    is_published, description,
+                    publication_date, background_image_alt, description_json,
+                    metadata, private_metadata)
+                VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT(slug) DO UPDATE
+                    SET id = product_collection.id, name = %s
+                RETURNING id
+            """, (
+                    # INSERT clause
+                    collection.name, collection.slug, '', '', '', 'True', '',
+                    'NOW()', '', '{}', '{}', '{}',
+                    # UPDATE clause
+                    collection.name
+                ))
 
-    collection.id = cursor.fetchone()[0]
-    comment(f'{collection.name}: {collection.id}')
+        collections[c].id = cursor.fetchone()[0]
+        comment(f'{collection.name}: {collection.id}')
+    return collections
 
-    return collection
 
 
 def fix_category_hierarchy():
