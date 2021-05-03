@@ -132,13 +132,14 @@ class CollectionSortingInput(SortInputObjectType):
 
 
 class ProductOrderField(graphene.Enum):
-    NAME = ["name", "slug"]
-    PRICE = ["min_variants_price_amount", "name", "slug"]
-    MINIMAL_PRICE = ["minimal_variant_price_amount", "name", "slug"]
-    DATE = ["updated_at", "name", "slug"]
-    TYPE = ["product_type__name", "name", "slug"]
-    PUBLISHED = ["is_published", "name", "slug"]
-    PUBLICATION_DATE = ["publication_date", "name", "slug"]
+    NAME = ["in_stock", "name", "slug"]
+    PRICE = ["in_stock", "min_variants_price_amount", "name", "slug"]
+    MINIMAL_PRICE = ["in_stock", "minimal_variant_price_amount", "name", "slug"]
+    DATE = ["in_stock", "updated_at", "name", "slug"]
+    TYPE = ["in_stock", "product_type__name", "name", "slug"]
+    PUBLISHED = ["in_stock", "is_published", "name", "slug"]
+    PUBLICATION_DATE = ["in_stock", "publication_date", "name", "slug"]
+
 
     @property
     def description(self):
