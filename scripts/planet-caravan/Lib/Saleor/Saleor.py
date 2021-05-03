@@ -63,8 +63,10 @@ class Saleor:
         for (i, row) in df.iterrows():
             sku = str(row.loc[Saleor.INVENTORY_SKU])
             inventory = int(row.loc['Quantity'])
+            cost = float(row.loc['Cost'])
+            price = float(row.loc['Price'])
 
-            info(f'Updating {sku} to {inventory}')
+            info(f'{sku}: {inventory} @ {price}')
 
             try:
                 cursor.execute("""
@@ -75,6 +77,20 @@ class Saleor:
                         AND LOWER(product_productvariant.sku) = %s
                         AND warehouse_stock.warehouse_id = %s
                 """, (max(0, inventory), str(sku).lower(), self.warehouse_id))
+
+                cursor.execute("""
+                UPDATE product_product
+                    SET in_stock = %s
+                    FROM product_productvariant
+                    WHERE product_productvariant.product_id = product_product.id
+                        AND LOWER(product_productvariant.sku) = %s
+                """, (inventory > 0, str(sku).lower()))
+
+                cursor.execute("""
+                UPDATE product_productvariant
+                    SET price_amount = %s, cost_price_amount = %s
+                    WHERE LOWER(product_productvariant.sku) = %s
+                """, (max(0, price), max(0, cost), str(sku).lower()))
             except Exception as e:
                 error(e)
 
