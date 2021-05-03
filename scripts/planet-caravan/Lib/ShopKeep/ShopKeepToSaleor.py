@@ -112,6 +112,7 @@ class ShopKeepToSaleor:
         while attempts > 0:
             print(f'Waiting for export to be ready ({attempts} attempts remaining)...')
             # Wait for the download button; then refresh until it's available
+            sleep(1)
 
             try:
                 # Sort by Created at, so the newest is at the top
