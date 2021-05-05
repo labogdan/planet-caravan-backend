@@ -304,7 +304,6 @@ def handle_images(product: Product, images: list) -> None:
     AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 
-
     zoho_id = json.loads(product.private_metadata)['ZOHO_ID']
 
     url = f'https://www.zohoapis.com/crm/v2/Products/{zoho_id}/Attachments'
