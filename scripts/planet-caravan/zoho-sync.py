@@ -187,7 +187,7 @@ def create_or_update_data(product: Product = None):
            (
                # UPDATE clause
                product.name, product.description, product.description_json,
-               product.type.id, product.category.id,
+               product.type.id, product.category.children[0].id,
                product.private_metadata,
                product.id
        ))
@@ -207,13 +207,13 @@ def create_or_update_data(product: Product = None):
            (
                 # INSERT clause
                 product.name, product.description, product.description_json,
-                product.type.id, product.category.id, product.is_published, product.charge_taxes,
+                product.type.id, product.category.children[0].id, product.is_published, product.charge_taxes,
                 product.currency, product.slug, product.visible_in_listings,
                 product.metadata, product.private_metadata, False,
 
                 # UPDATE clause
                 product.name, product.description, product.description_json,
-                product.type.id, product.category.id, product.private_metadata
+                product.type.id, product.category.children[0].id, product.private_metadata
             ))
 
         product.id = cursor.fetchone()[0]
