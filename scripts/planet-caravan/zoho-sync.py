@@ -196,8 +196,8 @@ def create_or_update_data(product: Product = None):
                INSERT INTO product_product
                (name, description, description_json, product_type_id, category_id,
                is_published, charge_taxes, currency, slug, visible_in_listings, metadata,
-               private_metadata, publication_date, updated_at, available_for_purchase)
-               VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW(), NOW())
+               private_metadata, in_stock, publication_date, updated_at, available_for_purchase)
+               VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW(), NOW())
                ON CONFLICT (slug) DO UPDATE
                 SET id = product_product.id, name = %s,
                     description = %s, description_json = %s, product_type_id = %s,
@@ -209,7 +209,7 @@ def create_or_update_data(product: Product = None):
                 product.name, product.description, product.description_json,
                 product.type.id, product.category.id, product.is_published, product.charge_taxes,
                 product.currency, product.slug, product.visible_in_listings,
-                product.metadata, product.private_metadata,
+                product.metadata, product.private_metadata, False,
 
                 # UPDATE clause
                 product.name, product.description, product.description_json,
