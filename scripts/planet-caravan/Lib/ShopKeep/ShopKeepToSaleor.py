@@ -151,11 +151,17 @@ class ShopKeepToSaleor:
     def wait_for_element(self, xpath, max_time=10):
         if not max_time:
             max_time = self.timeout
+        attempts = 0
 
-        element_present = EC.presence_of_element_located((By.XPATH, xpath))
-        WebDriverWait(self.browser, max_time).until(element_present)
+        while attempts < 5:
+            try:
+                element_present = EC.presence_of_element_located((By.XPATH, xpath))
+                WebDriverWait(self.browser, max_time).until(element_present)
+                return self.browser.find_element_by_xpath(xpath)
 
-        return self.browser.find_element_by_xpath(xpath)
+            except:
+                attempts += 1
+        raise Exception(f'Could not wait for element: {xpath} (Attempted {attempts} times).')
 
     def wait_then_click(self, xpath, max_time=10):
         element = self.wait_for_element(xpath, max_time)
