@@ -56,7 +56,6 @@ def move_images(arguments):
     """)
 
     products = cursor.fetchall()
-    continuing = False
     for p in products:
         zoho_product_id = p['zoho_id']
 
@@ -64,13 +63,6 @@ def move_images(arguments):
         comment('================================')
         comment(f"{p['name']}: {zoho_product_id}")
 
-
-        if zoho_product_id == '3980137000008779936':
-            info('Found product, continuing')
-            continuing = True
-
-        if not continuing:
-            continue
 
 
         cursor.execute("""
