@@ -60,6 +60,11 @@ def move_images(arguments):
     for p in products:
         zoho_product_id = p['zoho_id']
 
+        comment('')
+        comment('================================')
+        comment(f"{p['name']}: {zoho_product_id}")
+
+
         if zoho_product_id == '3980137000008779936':
             info('Found product, continuing')
             continuing = True
@@ -67,9 +72,6 @@ def move_images(arguments):
         if not continuing:
             continue
 
-        comment('')
-        comment('================================')
-        comment(f"{p['name']}: {zoho_product_id}")
 
         cursor.execute("""
             SELECT image
@@ -84,7 +86,7 @@ def move_images(arguments):
             images.append({
                 'url': full_url,
                 'filename': os.path.basename(full_url),
-                'file_id': None
+                'id': None
             })
 
         if len(images) == 0:
