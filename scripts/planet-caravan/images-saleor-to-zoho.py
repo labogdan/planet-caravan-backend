@@ -56,8 +56,17 @@ def move_images(arguments):
     """)
 
     products = cursor.fetchall()
+    continuing = False
     for p in products:
         zoho_product_id = p['zoho_id']
+
+        if zoho_product_id == '3980137000008779936':
+            info('Found product, continuing')
+            continuing = True
+
+        if not continuing:
+            continue
+
         comment('')
         comment('================================')
         comment(f"{p['name']}: {zoho_product_id}")
@@ -86,13 +95,12 @@ def move_images(arguments):
             'Authorization': f'Zoho-oauthtoken {oauth_token}'
         }
 
-
         for image in images:
-            request_body = {
-                'file': (image['filename'], urllib.request.urlopen(image['url']))
-            }
-
             try:
+                request_body = {
+                    'file': (image['filename'], urllib.request.urlopen(image['url']))
+                }
+
                 resp = requests.post(
                     url=f'https://www.zohoapis.com/crm/v2/files',
                     headers=headers,
