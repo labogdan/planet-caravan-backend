@@ -6,14 +6,18 @@ from Lib.Saleor.Saleor import Saleor
 
 
 def run_process(arguments):
-    environment = 'production'
-    if len(arguments) and arguments[1] == '--local':
-        del arguments[1]
-        environment = 'local'
-        load_dotenv()
 
-    s = Saleor(environment)
-    s.import_all(arguments[1], arguments[2])
+    print("Disabled in lieu of Zoho automation.")
+    return
+    #
+    # environment = 'production'
+    # if len(arguments) and arguments[1] == '--local':
+    #     del arguments[1]
+    #     environment = 'local'
+    #     load_dotenv()
+    #
+    # s = Saleor(environment)
+    # s.import_all(arguments[1], arguments[2])
 
 
 if __name__ == '__main__':

@@ -7,6 +7,8 @@ class ProductAttribute:
         self.slug = handleize(type_name)
         self.values = values if values is not None else []
         self.id = None
+        self.assignment_id = None
+
 
     def set_values(self, values):
         self.values = values

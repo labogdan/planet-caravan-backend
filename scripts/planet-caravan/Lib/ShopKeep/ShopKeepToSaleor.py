@@ -27,12 +27,12 @@ class ShopKeepToSaleor:
                        "safebrowsing.enabled": True}
 
         chrome_options.add_experimental_option("prefs", preferences)
-        chrome_options.add_argument("--headless")
         chrome_options.add_argument("--window-size=1920,1080")
 
         if self.environment == 'local':
             self.browser = webdriver.Chrome(options=chrome_options)
         else:
+            chrome_options.add_argument("--headless")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--no-sandbox")
             chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
@@ -112,6 +112,7 @@ class ShopKeepToSaleor:
         while attempts > 0:
             print(f'Waiting for export to be ready ({attempts} attempts remaining)...')
             # Wait for the download button; then refresh until it's available
+            sleep(1)
 
             try:
                 # Sort by Created at, so the newest is at the top
@@ -147,13 +148,23 @@ class ShopKeepToSaleor:
 
         raise Exception("Stock file download taking too long.")
 
-    def wait_then_click(self, xpath, max_time=10):
+    def wait_for_element(self, xpath, max_time=10):
         if not max_time:
             max_time = self.timeout
+        attempts = 0
 
-        element_present = EC.presence_of_element_located((By.XPATH, xpath))
-        WebDriverWait(self.browser, max_time).until(element_present)
+        while attempts < 5:
+            try:
+                element_present = EC.presence_of_element_located((By.XPATH, xpath))
+                WebDriverWait(self.browser, max_time).until(element_present)
+                return self.browser.find_element_by_xpath(xpath)
 
-        export_element = self.browser.find_element_by_xpath(xpath)
+            except:
+                attempts += 1
+        raise Exception(f'Could not wait for element: {xpath} (Attempted {attempts} times).')
 
-        export_element.click()
+    def wait_then_click(self, xpath, max_time=10):
+        element = self.wait_for_element(xpath, max_time)
+        sleep(0.05)
+        element.click()
+

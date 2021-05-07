@@ -72,7 +72,8 @@ def algolia_sync(arguments):
         comment(f'Syncing page {page + 1}')
         try:
             cursor.execute(f"""
-                        SELECT p.id, p.name, p.slug, p.description_json, pc.name AS category_name, pt.name AS product_type, pi.image,
+                        SELECT p.id, p.name, p.slug, p.description_json, p.in_stock,
+                        pc.name AS category_name, pt.name AS product_type, pi.image,
 					    (SELECT MIN(price_amount) FROM product_productvariant WHERE product_productvariant.product_id = p.id) AS price
                         FROM product_product p
                         LEFT JOIN product_category pc ON pc.id = p.category_id
@@ -102,7 +103,8 @@ def algolia_sync(arguments):
                         'category': result['category_name'],
                         'product_type': result['product_type'],
                         'description': description,
-                        'price': '{:.2f}'.format(float(result['price'])) if result['price'] else ''
+                        'price': '{:.2f}'.format(float(result['price'])) if result['price'] else '',
+                        'in_stock': result['in_stock']
                     })
 
                 temp_index.save_objects(objects)
@@ -111,6 +113,10 @@ def algolia_sync(arguments):
             error(f'Error syncing.')
             error(e)
             return False
+
+    comment("Copying index settings...")
+    client.copy_synonyms(index_name, temp_index_name)
+    client.copy_settings(index_name, temp_index_name)
 
     comment("Moving temp index to production...")
     client.move_index(temp_index_name, index_name)

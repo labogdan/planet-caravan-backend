@@ -272,6 +272,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+    in_stock = models.BooleanField(default=False)
     available_for_purchase = models.DateField(blank=True, null=True)
     visible_in_listings = models.BooleanField(default=False)
     default_variant = models.OneToOneField(

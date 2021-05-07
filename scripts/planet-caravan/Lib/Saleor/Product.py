@@ -19,3 +19,10 @@ class Product:
         self.metadata = '{}'
         self.private_metadata = '{}'
         self.description = ''
+
+        self.variants = []
+        self.attributes = []
+        self.collections = []
+        self.collection = None
+        self.type = None
+        self.category = None

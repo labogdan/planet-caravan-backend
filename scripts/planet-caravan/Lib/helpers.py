@@ -1,5 +1,8 @@
 import re
 import math
+import string
+import random
+
 
 def handleize(s=''):
     """
@@ -17,3 +20,12 @@ def has_value(d=None):
     :return:
     """
     return (type(d) is str and d != "" and d != "nan") or not math.isnan(d)
+
+
+def description_block(self, text=''):
+    letters = string.ascii_lowercase
+    key = ''.join(random.choice(letters) for _ in range(5))
+
+    return f"""
+        {{"blocks": [{{"key": "{key}", "data": {{}}, "text": "{text}", "type": "unstyled", "depth": 0, "entityRanges": [], "inlineStyleRanges": []}}], "entityMap": {{}}}}
+    """.strip()
