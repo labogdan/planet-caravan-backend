@@ -116,16 +116,15 @@ class ShopKeepToSaleor:
 
             try:
                 # Sort by Created at, so the newest is at the top
-                sort_xpath = '//*[contains(@class, "ReactVirtualized__Table__headerColumn")]/span[contains(@title, ' \
-                             '"Created At")] '
+                sort_xpath = '//*[contains(@class, "ReactVirtualized__Table__headerColumn")]/span[contains(@title, "Created At")]'
                 self.wait_then_click(sort_xpath)
-                sleep(0.1)
+                sleep(0.5)
                 self.browser.find_element_by_xpath(sort_xpath).click()
 
                 self.wait_then_click(download_xpath, 15)
                 sleep(1)
                 break
-            except TimeoutException:
+            except:
                 attempts = attempts - 1
                 self.browser.refresh()
                 sleep(1)
@@ -153,15 +152,14 @@ class ShopKeepToSaleor:
             max_time = self.timeout
         attempts = 0
 
-        while attempts < 5:
+        while attempts < 2:
             try:
-                element_present = EC.presence_of_element_located((By.XPATH, xpath))
+                element_present = EC.element_to_be_clickable((By.XPATH, xpath))
                 WebDriverWait(self.browser, max_time).until(element_present)
                 return self.browser.find_element_by_xpath(xpath)
 
-            except:
+            except Exception as e:
                 attempts += 1
-        raise Exception(f'Could not wait for element: {xpath} (Attempted {attempts} times).')
 
     def wait_then_click(self, xpath, max_time=10):
         element = self.wait_for_element(xpath, max_time)
