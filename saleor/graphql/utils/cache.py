@@ -3,7 +3,7 @@ import logging
 from django.core.cache import cache
 
 
-def bust_query_cache(request: HttpRequest) -> JsonResponse:
+def bust_query_cache(request: HttpRequest = None) -> JsonResponse:
     logger = logging.getLogger('django.server')
     logger.info("BUSTING CACHE")
 

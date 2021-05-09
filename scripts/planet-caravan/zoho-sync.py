@@ -1,10 +1,21 @@
+import os
+import sys
 import json
 import mimetypes
 import urllib
-
 import requests
-import os
-import sys
+
+import django
+
+sys.path.append(os.path.abspath('.'))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saleor.settings")
+try:
+    django.setup()
+except:
+    pass
+from django.core.cache import cache
+
+
 from dotenv import load_dotenv
 from Lib.CLI import *
 from Lib.helpers import handleize, description_block
@@ -20,16 +31,24 @@ from psycopg2.extras import DictCursor
 from pprint import pprint
 import boto3
 import pickle
+from datetime import datetime, timedelta
+
+
+
 
 oauth_token = None
 
 # Global variable
 cursor = None
 db = None
+environment = 'local'
 
-def db_connect(environment='local'):
+def db_connect(env='production'):
     info("Connecting to DB")
     global db
+    global environment
+
+    environment = env
 
     try:
         if environment == 'local':
@@ -232,11 +251,17 @@ def create_or_update_data(product: Product = None):
         (product.id, attribute.assignment_id))
         apa_id = cursor.fetchone()[0]
 
+        # Clear out prior attribute
+        cursor.execute("""
+            DELETE FROM product_assignedproductattribute_values
+            WHERE assignedproductattribute_id = %s
+        """, (apa_id,))
+
+        # Create the new value
         cursor.execute("""
                 INSERT INTO product_assignedproductattribute_values
                     (assignedproductattribute_id, attributevalue_id)
                 VALUES(%s, %s)
-                ON CONFLICT (assignedproductattribute_id, attributevalue_id) DO NOTHING
             """,
             (apa_id, attribute.values[0].id))
 
@@ -267,9 +292,12 @@ def create_or_update_data(product: Product = None):
     except:
         pass
 
+
     # Add To Collections
+    collections_to_keep = ()
     if len(product.collections):
         for collection in product.collections:
+            collections_to_keep = (*collections_to_keep, collection.id)
             warning(f'Adding to collection: {product.id} in {collection.id}')
             cursor.execute("""
                 INSERT INTO product_collectionproduct(collection_id, product_id)
@@ -277,6 +305,20 @@ def create_or_update_data(product: Product = None):
                 ON CONFLICT (collection_id, product_id)
                 DO NOTHING
             """, (collection.id, product.id))
+
+    if len(collections_to_keep):
+        # Remove from any other collections
+        cursor.execute("""
+            DELETE FROM product_collectionproduct
+            WHERE product_id = %s AND collection_id NOT IN %s
+        """, (product.id, collections_to_keep))
+    else:
+        # Just remove from all
+        cursor.execute("""
+            DELETE FROM product_collectionproduct
+            WHERE product_id = %s
+        """, (product.id,))
+
 
     # Add Warehouse entry
     cursor.execute("""
@@ -298,6 +340,7 @@ def create_or_update_data(product: Product = None):
 def handle_images(product: Product, images: list) -> None:
     global oauth_token
     global cursor
+    global environment
 
     s3 = None
     AWS_MEDIA_BUCKET_NAME = os.environ.get("AWS_MEDIA_BUCKET_NAME")
@@ -312,9 +355,12 @@ def handle_images(product: Product, images: list) -> None:
         'Authorization': f'Zoho-oauthtoken {oauth_token}',
     }
 
+    all_filenames = ()
     for image in images:
         attachment_id = image['attachment_Id']
         filename = image['file_Name']
+
+        all_filenames = (*all_filenames, f"products/{filename}")
 
         # Check if filename exists already
         cursor.execute("""
@@ -325,7 +371,7 @@ def handle_images(product: Product, images: list) -> None:
 
         existing_image = cursor.fetchone()[0]
 
-        if not existing_image:
+        if not existing_image and environment == 'production':
             warning(f'Uploading Image: {filename}')
             session = boto3.Session(
                 aws_access_key_id=AWS_ACCESS_KEY_ID,
@@ -353,6 +399,24 @@ def handle_images(product: Product, images: list) -> None:
         else:
             warning(f'Existing Image: {filename}')
 
+    # Clear out unused photos
+    try:
+        if len(all_filenames):
+            warning("Keep files:")
+            warning(all_filenames)
+            cursor.execute("""
+                DELETE FROM product_productimage
+                WHERE product_id = %s AND image NOT IN %s
+            """, (product.id, all_filenames))
+        else:
+            cursor.execute("""
+                DELETE FROM product_productimage
+                WHERE product_id = %s
+            """, (product.id,))
+    except:
+        error('Error clearing out unused images.')
+        pass
+
 
 def handle_product_type(pt: ProductType = None) -> int:
     global cursor
@@ -376,7 +440,6 @@ def handle_product_type(pt: ProductType = None) -> int:
 
     # Attributes
     for i, attribute in enumerate(pt.attributes):
-        info(f'Attribute {i}: {attribute}')
         cursor.execute("""
         INSERT INTO product_attribute (name, slug, input_type,
                 available_in_grid, visible_in_storefront, filterable_in_dashboard,
@@ -393,7 +456,7 @@ def handle_product_type(pt: ProductType = None) -> int:
                     attribute.type
                 ))
         pt.attributes[i].id = cursor.fetchone()[0]
-        comment(f'Attribute {attribute.type} : {pt.attributes[i].id}')
+        comment(f'Attribute {attribute.type}({i}) : {pt.attributes[i].id}')
 
         cursor.execute("""
                 INSERT INTO product_attributeproduct(attribute_id, product_type_id)
@@ -513,6 +576,8 @@ def handle_product_collection(collections: list = None) -> None:
 
 
 def fix_category_hierarchy():
+    info('===== FIXING HIERARCHY =====')
+
     global db
     """
     Note: this only is going to work for 2-level category hierarchies, as the data
@@ -578,13 +643,19 @@ def fix_category_hierarchy():
     return True
 
 def do_import(arguments):
+    info('===== RUNNING IMPORT =====')
+
     global oauth_token
     global cursor
     environment = 'production'
-    if len(arguments) >= 1 and arguments[0] == '--local':
+    if '--local' in arguments:
         del arguments[0]
         environment = 'local'
         load_dotenv()
+
+    sync_all = False
+    if '--sync-all' in arguments:
+        sync_all = True
 
     db = db_connect(environment)
     if not db:
@@ -595,13 +666,22 @@ def do_import(arguments):
 
     if not get_oauth():
         error("Could not retrieve updated access token.")
+        return False
 
     url = 'https://www.zohoapis.com/crm/v2/Products'
 
     headers = {
-        'Authorization': f'Zoho-oauthtoken {oauth_token}',
-        # 'If-Modified-Since': '2020-03-19T17:59:50+05:30'
+        'Authorization': f'Zoho-oauthtoken {oauth_token}'
     }
+
+    # Limit the amount of calls we need to make by only grabbing changes
+    # within the last 48 hours
+    # (should also be enough to catch a failed sync or two)
+    # can override with --sync-all flag
+    if not sync_all:
+        last_modified = datetime.now() - timedelta(hours=48)
+        modified_since = f'{last_modified.strftime("%Y-%m-%d")}T00:00:00+05:00'
+        headers['If-Modified-Since'] = modified_since
 
     parameters = {
         'page': 1,
@@ -609,14 +689,6 @@ def do_import(arguments):
     }
 
     keep_going = True
-
-    # pickle_file = 'products.pickle'
-
-    # if os.path.exists(pickle_file):
-    #     products = pickle.load(open(pickle_file, 'rb'))
-    #     info('Loaded pickle file')
-    #     handle_raw_product(products[0])
-    #     return
 
     while keep_going:
 
@@ -629,9 +701,6 @@ def do_import(arguments):
 
             products = list(filter(lambda x: x['Web_Available'] is True, data['data']))
 
-            # pickle.dump(products, open(pickle_file, 'wb'))
-            # info('Wrote to pickle file')
-
             for product in products:
                 handle_raw_product(product)
 
@@ -640,10 +709,21 @@ def do_import(arguments):
         else:
             keep_going = False
 
+    return True
+
+
+def bust_cache():
+    info('===== CLEARING CACHE =====')
+    qk = cache.keys("query-*")
+    cache.delete_many(qk)
+    return True
+
 
 if __name__ == '__main__':
-    do_import(sys.argv[1:])
-    print('')
-    fix_category_hierarchy()
-    print('')
-    warning('Done.')
+    result = (do_import(sys.argv[1:]) and
+              fix_category_hierarchy() and
+              bust_cache())
+    if result:
+        warning('Done.')
+    else:
+        error("Completed with errors. There is likely output above.")
