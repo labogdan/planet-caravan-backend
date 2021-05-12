@@ -7,7 +7,7 @@ import psycopg2.extras
 from algoliasearch.search_client import SearchClient
 from Lib.CLI import *
 from dotenv import load_dotenv
-
+import traceback
 
 def algolia_sync(arguments):
     environment = 'production'
@@ -94,7 +94,7 @@ def algolia_sync(arguments):
                     description = ''
                     dj = result['description_json']
                     if dj and type(dj) is dict and 'blocks' in dj.keys():
-                        description = ' '.join(b['text'] for b in dj['blocks'])
+                        description = ' '.join(b['text'] for b in dj['blocks'] if b['text'] is not None)
 
                     # Add algolia object
                     object = {
@@ -116,6 +116,7 @@ def algolia_sync(arguments):
         except Exception as e:
             error(f'Error syncing.')
             error(e)
+            traceback.print_exc()
             return False
 
     comment("Copying index settings...")
