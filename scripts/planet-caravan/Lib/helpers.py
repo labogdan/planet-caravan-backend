@@ -1,3 +1,4 @@
+import json
 import re
 import math
 import string
@@ -27,8 +28,18 @@ def description_block(text=''):
     key = ''.join(random.choice(letters) for _ in range(5))
 
     if text is not None:
-        text = text.replace("\n", " ")
+        text = text.replace("\n", " ").replace('"', '\"')
 
-    return f"""
-        {{"blocks": [{{"key": "{key}", "data": {{}}, "text": "{text}", "type": "unstyled", "depth": 0, "entityRanges": [], "inlineStyleRanges": []}}], "entityMap": {{}}}}
-    """.strip()
+    return json.dumps({"blocks": [
+        {
+            "key": key,
+            "data": {},
+            "text": text,
+            "type": "unstyled",
+            "depth": 0,
+            "entityRanges": [],
+            "inlineStyleRanges": []
+        }
+    ],
+        "entityMap": {}
+    })
