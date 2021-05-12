@@ -22,7 +22,7 @@ def has_value(d=None):
     return (type(d) is str and d != "" and d != "nan") or not math.isnan(d)
 
 
-def description_block(self, text=''):
+def description_block(text=''):
     letters = string.ascii_lowercase
     key = ''.join(random.choice(letters) for _ in range(5))
 

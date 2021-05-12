@@ -114,7 +114,7 @@ def handle_raw_product(raw_product: dict = None):
     # Variant
     variant = Variant()
     variant.name = raw_product['Product_Name']
-    variant.sku = str(raw_product['SKU']).strip("'")
+    variant.sku = raw_product['SKU'].strip("'")
     variant.cost_price_amount = raw_product['Cost']
     variant.weight = 0
     variant.price_amount = raw_product['Unit_Price']
@@ -702,6 +702,72 @@ def do_import(arguments):
             products = list(filter(lambda x: x['Web_Available'] is True, data['data']))
 
             for product in products:
+                """
+                example `product`:
+
+                {
+                    '$approval': {
+                        'approve': False,
+                        'delegate': False,
+                        'reject': False,
+                        'resubmit': False
+                    },
+                    '$approval_state': 'approved',
+                    '$approved': True,
+                    '$currency_symbol': '$',
+                    '$editable': True,
+                    '$in_merge': False,
+                    '$orchestration': False,
+                    '$process_flow': False,
+                    '$review': None,
+                    '$review_process': {
+                        'approve': False,
+                        'reject': False,
+                        'resubmit': False
+                    },
+                    '$state': 'save',
+                    '$taxable': True,
+                    'Attribute_Name_1': 'Style',
+                    'Attribute_Name_2': 'Joint Size',
+                    'Attribute_Name_3': 'Brand',
+                    'Attribute_Name_4': None,
+                    'Attribute_Name_5': None,
+                    'Attribute_Name_6': None,
+                    'Attribute_Value_1': 'Slide',
+                    'Attribute_Value_2': '14mm',
+                    'Attribute_Value_3': 'NA',
+                    'Attribute_Value_4': None,
+                    'Attribute_Value_5': None,
+                    'Attribute_Value_6': None,
+                    'Category': 'Slides',
+                    'Collection': None,
+                    'Cost': 3.5,
+                    'Created_Time': '2021-04-30T13:49:13-04:00',
+                    'Department': 'Smoke Shop',
+                    'Description': None,
+                    'Margin': 76.651,
+                    'Needs_Reviewed': True,
+                    'Owner': {
+                        'email': 'planetcaravan513@gmail.com',
+                        'id': '3980137000000211013',
+                        'name': 'Planet Caravan'
+                    },
+                    'Product_Name': 'Got Vape - FGA366 Yellow/Black 14mm Slide | 400000236445',
+                    'Product_Photos': None,
+                    'Record_Image': None,
+                    'SKU': "400000236445'",
+                    'Supplier': 'Got Vape',
+                    'Tag': [],
+                    'Tax': [],
+                    'Taxable': True,
+                    'UPC': None,
+                    'Unit_Price': 14.99,
+                    'Web_Available': True,
+                    'id': '3980137000009112120'
+                }
+                """
+                pprint(product)
+                return
                 handle_raw_product(product)
 
             parameters['page'] += 1

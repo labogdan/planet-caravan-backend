@@ -18,7 +18,7 @@ def algolia_sync(arguments):
     info("Connecting to DB")
     db = None
     try:
-        if environment == 'local':
+        if not os.environ['DATABASE_URL'] or environment == 'local':
             # Local dev
             db_name = os.getenv('DB_NAME')
             db_user = os.getenv('DB_USER')
@@ -80,6 +80,7 @@ def algolia_sync(arguments):
                         LEFT JOIN product_producttype pt ON pt.id = p.product_type_id
                         LEFT JOIN product_productimage pi ON pi.product_id = p.id AND pi.id = (SELECT MIN(id) FROM product_productimage WHERE product_id = p.id)
                         WHERE p.is_published = 'TRUE'
+                        ORDER BY id ASC
                         LIMIT {per_page}
                         OFFSET {per_page * page}
                     """)
@@ -88,6 +89,7 @@ def algolia_sync(arguments):
             objects = []
             if results is not None:
                 for result in results:
+
                     # Parse the description
                     description = ''
                     dj = result['description_json']
@@ -95,7 +97,7 @@ def algolia_sync(arguments):
                         description = ' '.join(b['text'] for b in dj['blocks'])
 
                     # Add algolia object
-                    objects.append({
+                    object = {
                         'objectID': result['id'],
                         'slug': result['slug'],
                         'name': result['name'],
@@ -105,7 +107,9 @@ def algolia_sync(arguments):
                         'description': description,
                         'price': '{:.2f}'.format(float(result['price'])) if result['price'] else '',
                         'in_stock': result['in_stock']
-                    })
+                    }
+
+                    objects.append(object)
 
                 temp_index.save_objects(objects)
 
