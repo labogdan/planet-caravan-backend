@@ -766,8 +766,6 @@ def do_import(arguments):
                     'id': '3980137000009112120'
                 }
                 """
-                pprint(product)
-                return
                 handle_raw_product(product)
 
             parameters['page'] += 1
