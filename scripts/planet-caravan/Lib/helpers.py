@@ -26,6 +26,9 @@ def description_block(text=''):
     letters = string.ascii_lowercase
     key = ''.join(random.choice(letters) for _ in range(5))
 
+    if text is not None:
+        text = text.replace("\n", " ")
+
     return f"""
         {{"blocks": [{{"key": "{key}", "data": {{}}, "text": "{text}", "type": "unstyled", "depth": 0, "entityRanges": [], "inlineStyleRanges": []}}], "entityMap": {{}}}}
     """.strip()
