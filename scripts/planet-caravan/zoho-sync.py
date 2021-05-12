@@ -649,6 +649,10 @@ def disable_products(products_to_disable=None):
         return True
 
     skus = tuple(str(p['SKU']).strip("'") for p in products_to_disable if p['SKU'])
+
+    if len(skus) < 1:
+        return 0
+    
     warning(f'Disabling {len(skus)} Products')
 
     cursor.execute("""
