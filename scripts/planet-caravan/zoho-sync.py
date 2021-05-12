@@ -642,6 +642,24 @@ def fix_category_hierarchy():
                 return False
     return True
 
+
+def disable_products(products_to_disable=None):
+    global cursor
+    if products_to_disable is None:
+        return True
+
+    skus = tuple(str(p['SKU']).strip("'") for p in products_to_disable if p['SKU'])
+    warning(f'Disabling {len(skus)} Products')
+
+    cursor.execute("""
+        UPDATE product_product p
+        SET is_published = FALSE
+        FROM product_productvariant pv
+        WHERE pv.product_id = p.id AND pv.sku in %s
+    """, (skus,))
+
+    return len(products_to_disable)
+
 def do_import(arguments):
     info('===== RUNNING IMPORT =====')
 
@@ -700,6 +718,7 @@ def do_import(arguments):
             response_info = data['info']
 
             products = list(filter(lambda x: x['Web_Available'] is True, data['data']))
+            remove_products = list(filter(lambda x: x['Web_Available'] is False, data['data']))
 
             for product in products:
                 """
@@ -767,6 +786,8 @@ def do_import(arguments):
                 }
                 """
                 handle_raw_product(product)
+
+            disable_products(remove_products)
 
             parameters['page'] += 1
             keep_going = response_info['more_records']
