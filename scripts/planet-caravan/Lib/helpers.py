@@ -29,17 +29,19 @@ def description_block(text=''):
 
     if text is not None:
         text = text.replace("\n", " ").replace('"', '\"')
+    else:
+        text = ''
 
     return json.dumps({"blocks": [
-        {
-            "key": key,
-            "data": {},
-            "text": text,
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-        }
-    ],
+            {
+                "key": key,
+                "data": {},
+                "text": text,
+                "type": "unstyled",
+                "depth": 0,
+                "entityRanges": [],
+                "inlineStyleRanges": []
+            }
+        ],
         "entityMap": {}
     })

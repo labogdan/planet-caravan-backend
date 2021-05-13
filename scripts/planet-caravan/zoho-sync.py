@@ -652,7 +652,7 @@ def disable_products(products_to_disable=None):
 
     if len(skus) < 1:
         return 0
-    
+
     warning(f'Disabling {len(skus)} Products')
 
     cursor.execute("""
