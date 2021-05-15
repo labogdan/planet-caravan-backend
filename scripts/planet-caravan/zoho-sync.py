@@ -169,8 +169,7 @@ def handle_raw_product(raw_product: dict = None):
     create_or_update_data(product)
 
     # Images
-    if 'Product_Photos' in raw_product and type(raw_product['Product_Photos']) == list:
-        handle_images(product, raw_product['Product_Photos'])
+    handle_images(product, raw_product)
 
 
 def create_or_update_data(product: Product = None):
@@ -337,10 +336,17 @@ def create_or_update_data(product: Product = None):
 
     return True
 
-def handle_images(product: Product, images: list) -> None:
+def handle_images(product: Product, raw_product) -> None:
     global oauth_token
     global cursor
     global environment
+
+    raw_images = []
+    for i in range(10):
+        k = f'Product_Photo{i}'
+        if k in raw_product.keys() and raw_product[k] and len(raw_product[k]) > 0:
+            raw_images.append(raw_product[k][0])
+
 
     s3 = None
     AWS_MEDIA_BUCKET_NAME = os.environ.get("AWS_MEDIA_BUCKET_NAME")
@@ -356,7 +362,7 @@ def handle_images(product: Product, images: list) -> None:
     }
 
     all_filenames = ()
-    for image in images:
+    for i, image in enumerate(raw_images):
         attachment_id = image['attachment_Id']
         filename = image['file_Name']
 
@@ -371,7 +377,7 @@ def handle_images(product: Product, images: list) -> None:
 
         existing_image = cursor.fetchone()[0]
 
-        if not existing_image and environment == 'production':
+        if not existing_image:
             warning(f'Uploading Image: {filename}')
             session = boto3.Session(
                 aws_access_key_id=AWS_ACCESS_KEY_ID,
@@ -393,10 +399,15 @@ def handle_images(product: Product, images: list) -> None:
                 ContentType=mtype)
 
             cursor.execute("""
-                INSERT INTO product_productimage(product_id, image, ppoi, alt)
-                VALUES(%s, %s, %s, %s)
-            """, (product.id, f"products/{filename}", '0.5x0.5', ''))
+                INSERT INTO product_productimage(sort_order, product_id, image, ppoi, alt)
+                VALUES(%s, %s, %s, %s, %s)
+            """, (i, product.id, f"products/{filename}", '0.5x0.5', ''))
         else:
+            cursor.execute("""
+                UPDATE product_productimage
+                SET sort_order = %s
+                WHERE product_id = %s and image = %s
+            """, (i, product.id, f"products/{filename}"))
             warning(f'Existing Image: {filename}')
 
     # Clear out unused photos
