@@ -94,8 +94,13 @@ def get_oauth():
     return False
 
 
-def handle_raw_product(raw_product: dict = None):
+def handle_raw_product(raw_product: dict = None, config: dict = None):
     global cursor
+
+    if not config:
+        config = {
+            'force_images': False
+        }
 
     print('======================================')
     warning(f'handle_raw_product(): {raw_product["Product_Name"]}')
@@ -169,7 +174,7 @@ def handle_raw_product(raw_product: dict = None):
     create_or_update_data(product)
 
     # Images
-    handle_images(product, raw_product)
+    handle_images(product, raw_product, config['force_images'])
 
 
 def create_or_update_data(product: Product = None):
@@ -336,7 +341,7 @@ def create_or_update_data(product: Product = None):
 
     return True
 
-def handle_images(product: Product, raw_product) -> None:
+def handle_images(product: Product, raw_product: dict = None, force_images: bool = False) -> None:
     global oauth_token
     global cursor
     global environment
@@ -377,7 +382,8 @@ def handle_images(product: Product, raw_product) -> None:
 
         existing_image = cursor.fetchone()[0]
 
-        if not existing_image:
+        # Upload if new or forced
+        if not existing_image or force_images is True:
             warning(f'Uploading Image: {filename}')
             session = boto3.Session(
                 aws_access_key_id=AWS_ACCESS_KEY_ID,
@@ -398,6 +404,8 @@ def handle_images(product: Product, raw_product) -> None:
                 Key=f'products/{filename}',
                 ContentType=mtype)
 
+        # Insert or update db
+        if not existing_image:
             cursor.execute("""
                 INSERT INTO product_productimage(sort_order, product_id, image, ppoi, alt)
                 VALUES(%s, %s, %s, %s, %s)
@@ -687,8 +695,12 @@ def do_import(arguments):
         load_dotenv()
 
     sync_all = False
+    force_images = False
     if '--sync-all' in arguments:
         sync_all = True
+
+    if '--force-images' in arguments:
+        force_images = True
 
     db = db_connect(environment)
     if not db:
@@ -800,7 +812,9 @@ def do_import(arguments):
                     'id': '3980137000009112120'
                 }
                 """
-                handle_raw_product(product)
+                handle_raw_product(product, {
+                    'force_images': force_images
+                })
 
             disable_products(remove_products)
 
