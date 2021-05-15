@@ -125,7 +125,7 @@ class ShopKeepToSaleor:
                 self.wait_then_click(download_xpath, 15)
                 sleep(1)
                 break
-            except TimeoutException:
+            except:
                 attempts = attempts - 1
                 self.browser.refresh()
                 sleep(1)

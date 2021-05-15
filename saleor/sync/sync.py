@@ -44,11 +44,6 @@ from django.http import HttpResponse, JsonResponse
 
 
 def handle_sync_url(request: WSGIRequest, sync_type: str) -> HttpResponse:
-    print("Doing sync")
-    print(sync_type)
-    print("SK TIMEOUT:")
-    print(os.getenv('SK_TIMEOUT'))
-
     cmd = None
 
     if sync_type == 'zoho':
