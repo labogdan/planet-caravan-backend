@@ -94,6 +94,8 @@ class Saleor:
             except Exception as e:
                 error(e)
 
+        return True
+
     def import_all(self, file='', image_base=''):
         """
         Imports an entire store's data

@@ -5,10 +5,9 @@ from Lib.Saleor.Saleor import Saleor
 from Lib.ShopKeep.ShopKeepToSaleor import ShopKeepToSaleor
 
 
-def run_process(arguments):
+def run_process(arguments = None):
     environment = 'production'
-    if len(arguments) >= 2 and arguments[1] == '--local':
-        del arguments[1]
+    if '--local' in arguments:
         environment = 'local'
         load_dotenv()
 
@@ -16,7 +15,7 @@ def run_process(arguments):
     stock_file = sk.run()
 
     s = Saleor(environment)
-    s.update_stock(stock_file)
+    return s.update_stock(stock_file)
 
 
 if __name__ == '__main__':

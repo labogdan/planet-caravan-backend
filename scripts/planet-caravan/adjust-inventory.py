@@ -5,7 +5,7 @@ from Lib.Saleor.Saleor import Saleor
 from Lib.ShopKeep.SaleorToShopKeep import SaleorToShopKeep
 from pprint import pprint
 
-def run_process(arguments):
+def run_process(arguments = None):
     environment = 'production'
 
     if len(arguments) >= 2 and arguments[1] == '--local':
@@ -17,12 +17,11 @@ def run_process(arguments):
     s.db_connect()
     adjustments = s.get_adjustments()
 
-
     if adjustments and len(adjustments.keys()) < 1:
         return
 
     sk = SaleorToShopKeep(environment, adjustments)
-    sk.run(s.mark_adjusted)
+    return sk.run(s.mark_adjusted)
 
 
 if __name__ == '__main__':

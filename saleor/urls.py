@@ -10,6 +10,7 @@ from .graphql.views import GraphQLView
 from .plugins.views import handle_plugin_webhook
 from .product.views import digital_product
 from .graphql.utils.cache import bust_query_cache
+from .sync.sync import handle_sync_url
 
 urlpatterns = [
     url(r"^graphql/", csrf_exempt(GraphQLView.as_view(schema=schema)), name="api"),
@@ -25,6 +26,7 @@ urlpatterns = [
         name="plugins",
     ),
     url('bust-cache', bust_query_cache),
+    url('sync/(?P<sync_type>[a-z\-]+)$', handle_sync_url)
 ]
 
 if settings.DEBUG:
