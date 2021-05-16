@@ -685,7 +685,6 @@ def disable_products(products_to_disable=None):
 
 def do_import(arguments = None):
     info('===== RUNNING IMPORT =====')
-    return
 
     global oauth_token
     global cursor
