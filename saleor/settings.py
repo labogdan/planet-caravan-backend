@@ -263,6 +263,8 @@ INSTALLED_APPS = [
     "django_countries",
     "django_filters",
     "phonenumber_field",
+    # Custom apps
+    "saleor.sync"
 ]
 
 

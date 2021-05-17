@@ -841,3 +841,4 @@ if __name__ == '__main__':
         warning('Done.')
     else:
         error("Completed with errors. There is likely output above.")
+        sys.exit(1)
