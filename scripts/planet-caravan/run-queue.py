@@ -14,7 +14,8 @@ def get_command(cmd_type = ''):
     cmds = {
         'zoho': 'python scripts/planet-caravan/zoho-sync.py',
         'inventory-pricing': 'python scripts/planet-caravan/stock-sync.py',
-        'orders': 'python scripts/planet-caravan/adjust-inventory.py'
+        'orders': 'python scripts/planet-caravan/adjust-inventory.py',
+        'algolia': 'python scripts/algolia/sync.py'
     }
 
     if cmd_type in cmds.keys():
