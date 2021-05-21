@@ -270,9 +270,9 @@ def create_or_update_data(product: Product = None):
         cursor.execute("""
                 INSERT INTO product_assignedproductattribute_values
                     (assignedproductattribute_id, attributevalue_id)
-                    ON CONFLICT (assignedproductattribute_id, attributevalue_id)
-                    DO NOTHING
                 VALUES(%s, %s)
+                ON CONFLICT (assignedproductattribute_id, attributevalue_id)
+                    DO NOTHING
             """,
             (apa_id, attribute.values[0].id))
 
