@@ -270,6 +270,8 @@ def create_or_update_data(product: Product = None):
         cursor.execute("""
                 INSERT INTO product_assignedproductattribute_values
                     (assignedproductattribute_id, attributevalue_id)
+                    ON CONFLICT (assignedproductattribute_id, attributevalue_id)
+                    DO NOTHING
                 VALUES(%s, %s)
             """,
             (apa_id, attribute.values[0].id))
@@ -378,50 +380,53 @@ def handle_images(product: Product, raw_product: dict = None, force_images: bool
 
         all_filenames = (*all_filenames, f"products/{filename}")
 
-        # Check if filename exists already
-        cursor.execute("""
-            SELECT COUNT(*) AS count
-            FROM product_productimage
-            WHERE product_id = %s and image = %s
-        """, (product.id, f"products/{filename}"))
-
-        existing_image = cursor.fetchone()[0]
-
-        # Upload if new or forced
-        if not existing_image or force_images is True:
-            warning(f'Uploading Image: {filename}')
-            session = boto3.Session(
-                aws_access_key_id=AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-            )
-            s3 = session.resource('s3')
-
-            mtype = mimetypes.MimeTypes().guess_type(filename)[0]
-
-            img_url = f'{url}/{attachment_id}'
-            info(img_url)
-            req = urllib.request.Request(img_url, headers=headers)
-            response = urllib.request.urlopen(req)
-            img_bytes = response.read()
-
-            s3.Bucket(AWS_MEDIA_BUCKET_NAME).put_object(
-                Body=img_bytes,
-                Key=f'products/{filename}',
-                ContentType=mtype)
-
-        # Insert or update db
-        if not existing_image:
+        try:
+            # Check if filename exists already
             cursor.execute("""
-                INSERT INTO product_productimage(sort_order, product_id, image, ppoi, alt)
-                VALUES(%s, %s, %s, %s, %s)
-            """, (i, product.id, f"products/{filename}", '0.5x0.5', ''))
-        else:
-            cursor.execute("""
-                UPDATE product_productimage
-                SET sort_order = %s
+                SELECT COUNT(*) AS count
+                FROM product_productimage
                 WHERE product_id = %s and image = %s
-            """, (i, product.id, f"products/{filename}"))
-            warning(f'Existing Image: {filename}')
+            """, (product.id, f"products/{filename}"))
+
+            existing_image = cursor.fetchone()[0]
+
+            # Upload if new or forced
+            if not existing_image or force_images is True:
+                warning(f'Uploading Image: {filename}')
+                session = boto3.Session(
+                    aws_access_key_id=AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+                )
+                s3 = session.resource('s3')
+
+                mtype = mimetypes.MimeTypes().guess_type(filename)[0]
+
+                img_url = f'{url}/{attachment_id}'
+                info(img_url)
+                req = urllib.request.Request(img_url, headers=headers)
+                response = urllib.request.urlopen(req)
+                img_bytes = response.read()
+
+                s3.Bucket(AWS_MEDIA_BUCKET_NAME).put_object(
+                    Body=img_bytes,
+                    Key=f'products/{filename}',
+                    ContentType=mtype)
+
+            # Insert or update db
+            if not existing_image:
+                cursor.execute("""
+                    INSERT INTO product_productimage(sort_order, product_id, image, ppoi, alt)
+                    VALUES(%s, %s, %s, %s, %s)
+                """, (i, product.id, f"products/{filename}", '0.5x0.5', ''))
+            else:
+                cursor.execute("""
+                    UPDATE product_productimage
+                    SET sort_order = %s
+                    WHERE product_id = %s and image = %s
+                """, (i, product.id, f"products/{filename}"))
+                warning(f'Existing Image: {filename}')
+        except:
+            pass
 
     # Clear out unused photos
     try:
