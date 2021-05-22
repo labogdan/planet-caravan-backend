@@ -31,7 +31,7 @@ def build_cache(arguments = None):
 
         browser = webdriver.Chrome(
             executable_path=os.environ.get("CHROMEDRIVER_PATH"),
-            chrome_options=chrome_options)
+            options=chrome_options)
 
 
     # MAX_WAIT = 3 * 60
@@ -63,9 +63,6 @@ def build_cache(arguments = None):
 
     comment("")
     comment("Done")
-    while True:
-        sleep(1)
-
 
 # def wait_for_element(browser, xpath, max_time=10):
 #     attempts = 0
