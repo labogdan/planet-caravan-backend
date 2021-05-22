@@ -15,7 +15,8 @@ def get_command(cmd_type = ''):
         'zoho': 'python scripts/planet-caravan/zoho-sync.py',
         'inventory-pricing': 'python scripts/planet-caravan/stock-sync.py',
         'orders': 'python scripts/planet-caravan/adjust-inventory.py',
-        'algolia': 'python scripts/algolia/sync.py'
+        'algolia': 'python scripts/algolia/sync.py',
+        'build-cache': 'python scripts/planet-caravan/build-cache.py'
     }
 
     if cmd_type in cmds.keys():
@@ -43,6 +44,7 @@ def run_queue(arguments = None):
         SELECT *
         FROM sync_queuejob
         WHERE status = 0 AND started_at IS NULL and completed_at IS NULL
+        ORDER BY id ASC
     """)
 
     # Aggregate all commands so they aren't run 20 times in a row
