@@ -15,7 +15,6 @@ except:
     pass
 from django.core.cache import cache
 
-
 from dotenv import load_dotenv
 from Lib.CLI import *
 from Lib.helpers import handleize, description_block
@@ -33,15 +32,13 @@ import boto3
 import pickle
 from datetime import datetime, timedelta
 
-
-
-
 oauth_token = None
 
 # Global variable
 cursor = None
 db = None
 environment = 'local'
+
 
 def db_connect(env='production'):
     info("Connecting to DB")
@@ -212,13 +209,13 @@ def create_or_update_data(product: Product = None):
                 category_id = %s, private_metadata = %s, updated_at = NOW()
             WHERE id = %s
            """,
-           (
-               # UPDATE clause
-               product.name, product.description, product.description_json,
-               product.type.id, product.category.children[0].id,
-               product.private_metadata,
-               product.id
-       ))
+                       (
+                           # UPDATE clause
+                           product.name, product.description, product.description_json,
+                           product.type.id, product.category.children[0].id,
+                           product.private_metadata,
+                           product.id
+                       ))
     else:
         cursor.execute("""
                INSERT INTO product_product
@@ -232,17 +229,19 @@ def create_or_update_data(product: Product = None):
                     category_id = %s, private_metadata = %s, updated_at = NOW()
                RETURNING id
                """,
-           (
-                # INSERT clause
-                product.name, product.description, product.description_json,
-                product.type.id, product.category.children[0].id, product.is_published, product.charge_taxes,
-                product.currency, product.slug, product.visible_in_listings,
-                product.metadata, product.private_metadata, False,
+                       (
+                           # INSERT clause
+                           product.name, product.description, product.description_json,
+                           product.type.id, product.category.children[0].id,
+                           product.is_published, product.charge_taxes,
+                           product.currency, product.slug, product.visible_in_listings,
+                           product.metadata, product.private_metadata, False,
 
-                # UPDATE clause
-                product.name, product.description, product.description_json,
-                product.type.id, product.category.children[0].id, product.private_metadata
-            ))
+                           # UPDATE clause
+                           product.name, product.description, product.description_json,
+                           product.type.id, product.category.children[0].id,
+                           product.private_metadata
+                       ))
 
         product.id = cursor.fetchone()[0]
 
@@ -257,7 +256,7 @@ def create_or_update_data(product: Product = None):
                 SET id = product_assignedproductattribute.id
             RETURNING id
         """,
-        (product.id, attribute.assignment_id))
+                       (product.id, attribute.assignment_id))
         apa_id = cursor.fetchone()[0]
 
         # Clear out prior attribute
@@ -274,7 +273,7 @@ def create_or_update_data(product: Product = None):
                 ON CONFLICT (assignedproductattribute_id, attributevalue_id)
                     DO NOTHING
             """,
-            (apa_id, attribute.values[0].id))
+                       (apa_id, attribute.values[0].id))
 
     # Add Variant
     variant = product.variants[0]
@@ -303,7 +302,6 @@ def create_or_update_data(product: Product = None):
     except:
         pass
 
-
     # Add To Collections
     collections_to_keep = ()
     if len(product.collections):
@@ -330,7 +328,6 @@ def create_or_update_data(product: Product = None):
             WHERE product_id = %s
         """, (product.id,))
 
-
     # Add Warehouse entry
     cursor.execute("""
         SELECT id
@@ -348,7 +345,9 @@ def create_or_update_data(product: Product = None):
 
     return True
 
-def handle_images(product: Product, raw_product: dict = None, force_images: bool = False) -> None:
+
+def handle_images(product: Product, raw_product: dict = None,
+                  force_images: bool = False) -> None:
     global oauth_token
     global cursor
     global environment
@@ -358,7 +357,6 @@ def handle_images(product: Product, raw_product: dict = None, force_images: bool
         k = f'Product_Photo{i}'
         if k in raw_product.keys() and raw_product[k] and len(raw_product[k]) > 0:
             raw_images.append(raw_product[k][0])
-
 
     s3 = None
     AWS_MEDIA_BUCKET_NAME = os.environ.get("AWS_MEDIA_BUCKET_NAME")
@@ -460,10 +458,10 @@ def handle_product_type(pt: ProductType = None) -> int:
                 SET id = product_producttype.id, name = %s
             RETURNING id
                             """, (
-                                    # INSERT clause
-                                    pt.type, False, True, 0, False, pt.slug, '{}', '{}',
-                                    # UPDATE clause
-                                    pt.type))
+        # INSERT clause
+        pt.type, False, True, 0, False, pt.slug, '{}', '{}',
+        # UPDATE clause
+        pt.type))
 
     pt.id = cursor.fetchone()[0]
 
@@ -479,11 +477,11 @@ def handle_product_type(pt: ProductType = None) -> int:
                 SET id = product_attribute.id, name = %s
             RETURNING id
             """, (
-                    # INSERT clause
-                    attribute.type, attribute.slug, 'dropdown',
-                    # UPDATE clause
-                    attribute.type
-                ))
+            # INSERT clause
+            attribute.type, attribute.slug, 'dropdown',
+            # UPDATE clause
+            attribute.type
+        ))
         pt.attributes[i].id = cursor.fetchone()[0]
         comment(f'Attribute {attribute.type}({i}) : {pt.attributes[i].id}')
 
@@ -495,7 +493,7 @@ def handle_product_type(pt: ProductType = None) -> int:
                 RETURNING ID
             """, (attribute.id, pt.id))
         pt.attributes[i].assignment_id = cursor.fetchone()[0]
-        comment(f'  Assignment ID: {pt.attributes[i].assignment_id }')
+        comment(f'  Assignment ID: {pt.attributes[i].assignment_id}')
 
         # Attribute Values
         for j, value in enumerate(attribute.values):
@@ -506,17 +504,15 @@ def handle_product_type(pt: ProductType = None) -> int:
                 SET id = product_attributevalue.id, name = %s, value = %s
             RETURNING id
             """, (
-                    # INSERT clause
-                    value.value, value.slug, value.slug, pt.attributes[i].id,
-                    # UPDATE clause
-                    value.value, value.slug
-                ))
+                # INSERT clause
+                value.value, value.slug, value.slug, pt.attributes[i].id,
+                # UPDATE clause
+                value.value, value.slug
+            ))
             pt.attributes[i].values[j].id = cursor.fetchone()[0]
         comment(f'  Value {value.value} : {pt.attributes[i].values[j].id}')
 
-
     return pt
-
 
 
 def handle_product_category(cat: Category = None) -> Category:
@@ -532,15 +528,15 @@ def handle_product_category(cat: Category = None) -> Category:
                 SET id = product_category.id, name = %s
             RETURNING id
         """, (
-                # INSERT clause
-                cat.name, cat.slug, cat.level, cat.description,
-                cat.lft, cat.rght, cat.tree_id,
-                cat.background_image, cat.background_image_alt,
-                cat.description_json, cat.parent_id,
-                '{}', '{}',
-                # UPDATE clause
-                cat.name
-            ))
+        # INSERT clause
+        cat.name, cat.slug, cat.level, cat.description,
+        cat.lft, cat.rght, cat.tree_id,
+        cat.background_image, cat.background_image_alt,
+        cat.description_json, cat.parent_id,
+        '{}', '{}',
+        # UPDATE clause
+        cat.name
+    ))
     cat.id = cursor.fetchone()[0]
 
     comment(f'{cat.name}: {cat.id}')
@@ -559,15 +555,15 @@ def handle_product_category(cat: Category = None) -> Category:
                     SET id = product_category.id, name = %s
                 RETURNING id
             """, (
-                    # INSERT clause
-                    child_cat.name, child_cat.slug, child_cat.level, child_cat.description,
-                    child_cat.lft, child_cat.rght, child_cat.tree_id,
-                    child_cat.background_image, child_cat.background_image_alt,
-                    child_cat.description_json, child_cat.parent_id,
-                    '{}', '{}',
-                    # UPDATE clause
-                    child_cat.name
-                ))
+            # INSERT clause
+            child_cat.name, child_cat.slug, child_cat.level, child_cat.description,
+            child_cat.lft, child_cat.rght, child_cat.tree_id,
+            child_cat.background_image, child_cat.background_image_alt,
+            child_cat.description_json, child_cat.parent_id,
+            '{}', '{}',
+            # UPDATE clause
+            child_cat.name
+        ))
 
         cat.children[i].id = cursor.fetchone()[0]
         comment(f'  {child_cat.name}: {cat.children[i].id}')
@@ -591,17 +587,16 @@ def handle_product_collection(collections: list = None) -> None:
                     SET id = product_collection.id, name = %s
                 RETURNING id
             """, (
-                    # INSERT clause
-                    collection.name, collection.slug, '', '', '', 'True', '',
-                    'NOW()', '', '{}', '{}', '{}',
-                    # UPDATE clause
-                    collection.name
-                ))
+            # INSERT clause
+            collection.name, collection.slug, '', '', '', 'True', '',
+            'NOW()', '', '{}', '{}', '{}',
+            # UPDATE clause
+            collection.name
+        ))
 
         collections[c].id = cursor.fetchone()[0]
         comment(f'{collection.name}: {collection.id}')
     return collections
-
 
 
 def fix_category_hierarchy():
@@ -693,7 +688,8 @@ def disable_products(products_to_disable=None):
 
     return len(products_to_disable)
 
-def do_import(arguments = None):
+
+def do_import(arguments=None):
     info('===== RUNNING IMPORT =====')
 
     global oauth_token
@@ -755,7 +751,8 @@ def do_import(arguments = None):
             response_info = data['info']
 
             products = list(filter(lambda x: x['Web_Available'] is True, data['data']))
-            remove_products = list(filter(lambda x: x['Web_Available'] is False, data['data']))
+            remove_products = list(
+                filter(lambda x: x['Web_Available'] is False, data['data']))
 
             for product in products:
                 """
