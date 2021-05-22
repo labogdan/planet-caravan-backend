@@ -110,7 +110,9 @@ def handle_raw_product(raw_product: dict = None, config: dict = None):
     product.description_json = description_block(raw_product['Description'])
     product.metadata = '{}'
     product.private_metadata = json.dumps({
-        'ZOHO_ID': raw_product['id']
+        'ZOHO_ID': raw_product['id'],
+        'DROP_DATE': raw_product['Drop_Date_Time'],
+        'COMING_SOON': raw_product['Coming_Soon']
     })
 
     # Variant
@@ -389,7 +391,7 @@ def handle_images(product: Product, raw_product: dict = None,
             existing_image = cursor.fetchone()[0]
 
             # Upload if new or forced
-            if not existing_image or force_images is True:
+            if (not existing_image and environment != 'local') or force_images is True:
                 warning(f'Uploading Image: {filename}')
                 session = boto3.Session(
                     aws_access_key_id=AWS_ACCESS_KEY_ID,
