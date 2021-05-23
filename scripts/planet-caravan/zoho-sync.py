@@ -852,15 +852,20 @@ if __name__ == '__main__':
               bust_cache())
 
     message = 'Zoho sync completed successfully.'
+    has_error = 0
     if result:
         warning('Done.')
     else:
+        has_error = 1
         error("Completed with errors. There is likely output above.")
         message = 'Zoho sync had errors.'
-        sys.exit(1)
 
+    # Try sending email
     try:
         send_email('Zoho Sync Status', message)
     except:
         error("Could not send email notification.")
         pass
+
+    # Exit script
+    sys.exit(has_error)
