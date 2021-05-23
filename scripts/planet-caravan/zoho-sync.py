@@ -32,6 +32,8 @@ import boto3
 import pickle
 from datetime import datetime, timedelta
 
+from Lib.Email import send_email
+
 oauth_token = None
 
 # Global variable
@@ -848,8 +850,17 @@ if __name__ == '__main__':
     result = (do_import(sys.argv[1:]) and
               fix_category_hierarchy() and
               bust_cache())
+
+    message = 'Zoho sync completed successfully.'
     if result:
         warning('Done.')
     else:
         error("Completed with errors. There is likely output above.")
+        message = 'Zoho sync had errors.'
         sys.exit(1)
+
+    try:
+        send_email('Zoho Sync Status', message)
+    except:
+        error("Could not send email notification.")
+        pass
