@@ -108,11 +108,13 @@ def handle_raw_product(raw_product: dict = None, config: dict = None):
     product.slug = handleize(raw_product['Product_Name'])
     product.description = str(raw_product['Description'])
     product.description_json = description_block(raw_product['Description'])
-    product.metadata = '{}'
-    product.private_metadata = json.dumps({
-        'ZOHO_ID': raw_product['id'],
+    product.metadata = json.dumps({
         'DROP_DATE': raw_product['Drop_Date_Time'],
         'COMING_SOON': raw_product['Coming_Soon']
+    })
+
+    product.private_metadata = json.dumps({
+        'ZOHO_ID': raw_product['id']
     })
 
     # Variant
