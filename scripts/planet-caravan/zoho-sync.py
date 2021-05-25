@@ -113,8 +113,8 @@ def handle_raw_product(raw_product: dict = None, config: dict = None):
 
     metadata = {}
     for mk, pk in {'DROP_DATE': 'Drop_Date_Time', 'COMING_SOON': 'Coming_Soon'}.items():
-        if pk in raw_product and raw_product[pk]:
-            metadata[mk] = raw_product[pk]
+        if pk in raw_product and raw_product[pk] is not None:
+            metadata[mk] = str(raw_product[pk])
 
     product.metadata = json.dumps(metadata)
 
