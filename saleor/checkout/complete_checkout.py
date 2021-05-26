@@ -332,7 +332,7 @@ def _get_order_data(checkout: models.Checkout, discounts: List[DiscountInfo]) ->
             checkout=checkout, lines=list(checkout), discounts=discounts,
         )
     except InsufficientStock as e:
-        raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
+        raise ValidationError(f"Unfortunately, an item in your cart has sold out: {e.item}. We appreciate your continued support!", code=e.code)
     except NotApplicable:
         raise ValidationError(
             "Voucher not applicable",
@@ -426,6 +426,6 @@ def complete_checkout(
         except InsufficientStock as e:
             release_voucher_usage(order_data)
             gateway.payment_refund_or_void(payment)
-            raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
+            raise ValidationError(f"Unfortunately, an item in your cart has sold out: {e.item}. We appreciate your continued support!", code=e.code)
 
     return order, action_required, action_data

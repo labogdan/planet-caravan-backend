@@ -54,7 +54,7 @@ def validate_order_lines(order, country):
                 raise ValidationError(
                     {
                         "lines": ValidationError(
-                            f"Insufficient product stock: {exc.item}",
+                            f"Unfortunately, an item in your cart has sold out: {exc.item}. We appreciate your continued support!",
                             code=OrderErrorCode.INSUFFICIENT_STOCK,
                         )
                     }

@@ -555,7 +555,7 @@ def test_checkout_complete_insufficient_stock(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert data["checkoutErrors"][0]["message"] == "Insufficient product stock: 123"
+    assert data["checkoutErrors"][0]["message"] == "Unfortunately, an item in your cart has sold out: 123. We appreciate your continued support!"
     assert orders_count == Order.objects.count()
 
 
@@ -603,7 +603,7 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
 
-    assert data["checkoutErrors"][0]["message"] == "Insufficient product stock: 123"
+    assert data["checkoutErrors"][0]["message"] == "Unfortunately, an item in your cart has sold out: 123. We appreciate your continued support!"
     assert orders_count == Order.objects.count()
 
     gateway_refund_mock.assert_called_once_with(payment)
@@ -653,7 +653,7 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
 
-    assert data["checkoutErrors"][0]["message"] == "Insufficient product stock: 123"
+    assert data["checkoutErrors"][0]["message"] == "Unfortunately, an item in your cart has sold out: 123. We appreciate your continued support!"
     assert orders_count == Order.objects.count()
 
     gateway_void_mock.assert_called_once_with(payment)
