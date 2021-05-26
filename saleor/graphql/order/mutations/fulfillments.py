@@ -255,7 +255,7 @@ class OrderFulfill(BaseMutation):
             raise ValidationError(
                 {
                     "stocks": ValidationError(
-                        f"Insufficient product stock: {exc.item}",
+                        f"Unfortunately, an item in your cart has sold out: {exc.item}. We appreciate your continued support!",
                         code=OrderErrorCode.INSUFFICIENT_STOCK,
                         params={
                             "order_line": order_line_global_id,
