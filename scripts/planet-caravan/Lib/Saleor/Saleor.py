@@ -19,6 +19,7 @@ import string
 import mimetypes
 import json
 
+
 class Saleor:
     # CSV header constants
     TYPE_KEY = "Category"
@@ -731,7 +732,8 @@ class Saleor:
                     if has_value(desc_json):
                         product.description_json = str(desc_json).strip()
                     elif has_value(desc):
-                        product.description_json = self.make_description_block(str(desc).strip())
+                        product.description_json = self.make_description_block(
+                            str(desc).strip())
                     else:
                         product.description_json = '{}'
 
@@ -1047,7 +1049,8 @@ class Saleor:
                 continue
 
             # Seems okay, lets add the images
-            variant_images = [v.loc[d] for d in Saleor.IMAGES if d in df.columns and has_value(v.loc[d])]
+            variant_images = [v.loc[d] for d in Saleor.IMAGES if
+                              d in df.columns and has_value(v.loc[d])]
 
             s3 = None
             AWS_MEDIA_BUCKET_NAME = os.environ.get("AWS_MEDIA_BUCKET_NAME")
@@ -1116,11 +1119,13 @@ class Saleor:
         info(f"Finding orders to sync...")
 
         order_query = """
-        SELECT o.id AS order_id, ol.variant_id, ol.quantity, p.name, p.private_metadata, pv.sku
+        SELECT ol.id AS order_line_id, o.id AS order_id, ol.variant_id, ol.quantity,
+            p.name, p.private_metadata, pv.sku, ws.id AS stock_id
             FROM order_order o
             LEFT JOIN order_orderline ol ON ol.order_id = o.id
             LEFT JOIN product_productvariant pv ON ol.variant_id = pv.id
             LEFT JOIN product_product p ON pv.product_id = p.id
+            LEFT JOIN warehouse_stock ws ON ws.product_variant_id = pv.id
             WHERE variant_id IS NOT NULL
             AND NOT EXISTS (SELECT os.id FROM order_ordersync os WHERE os.order_id = o.id)
         """
@@ -1129,9 +1134,67 @@ class Saleor:
         cursor.execute(order_query)
         items = cursor.fetchall()
 
+        # Mark fulfillments
+        fulfillment_ids = {}
+        for item in items:
+            order_id = item['order_id']
+
+            # Find or create the fulfillment
+            if order_id not in fulfillment_ids.keys():
+                cursor.execute("""
+                SELECT id
+                FROM order_fulfillment
+                WHERE order_id = %s
+                """, (order_id,))
+
+                fulfillment = cursor.fetchone()
+
+                if not fulfillment:
+                    cursor.execute("""
+                    INSERT INTO order_fulfillment
+                    (tracking_number, created, order_id, fulfillment_order, status, metadata, private_metadata)
+                    VALUES(%s, NOW(), %s, %s, %s, %s, %s)
+                    RETURNING id
+                    """, ('', order_id, 1, 'fulfilled', '{}', '{}'))
+                    fulfillment = cursor.fetchone()
+
+                fulfillment_ids[order_id] = fulfillment['id']
+
+            # Update the fulfillment line item
+            cursor.execute("""
+                INSERT INTO order_fulfillmentline
+                (order_line_id, quantity, fulfillment_id, stock_id)
+                VALUES(%s, %s, %s, %s)
+                """, (
+            item['order_line_id'], item['quantity'], fulfillment_ids[order_id],
+            item['stock_id']))
+
+            # Update the order line item
+            cursor.execute("""
+            UPDATE order_orderline
+            SET quantity_fulfilled = %s
+            WHERE id = %s
+            """, (item['quantity'], item['order_line_id']))
+
+            # Delete the allocation
+            cursor.execute("""
+            DELETE FROM warehouse_allocation
+            WHERE order_line_id = %s and stock_id = %s
+            """, (item['order_line_id'], item['stock_id']))
+
+        order_ids = tuple(fulfillment_ids.keys())
+        if len(order_ids):
+            # Update order status
+            cursor.execute("""
+            UPDATE order_order
+            SET status = %s
+            WHERE id in %s
+            """, ('fulfilled', order_ids))
+
+        # Set up sync to shopkeep
         to_sync = {}
         for item in items:
-            metafields = item['private_metadata']
+            # metafields = item['private_metadata']
             search = item['sku']
 
             if item['order_id'] not in to_sync.keys():
@@ -1143,7 +1206,8 @@ class Saleor:
                     'adjustment': 0
                 }
 
-            to_sync[item['order_id']][item['variant_id']]['adjustment'] -= item['quantity']
+            to_sync[item['order_id']][item['variant_id']]['adjustment'] -= item[
+                'quantity']
 
         return to_sync
 
@@ -1152,4 +1216,4 @@ class Saleor:
         cursor.execute("""
             INSERT INTO order_ordersync (order_id, status, synced_at)
             VALUES (%s, %s, NOW())
-        """, (order_id,status))
+        """, (order_id, status))
