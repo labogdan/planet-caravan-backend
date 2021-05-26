@@ -1,7 +1,7 @@
 {% load i18n %}
 
 {% block subject %}
-  {% trans "Email change e-mail" context "Email change e-mail subject" %}
+  {% trans "Email Change E-mail" context "Email change e-mail subject" %}
 {% endblock %}
 
 {% block plain %}

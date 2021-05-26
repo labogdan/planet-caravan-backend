@@ -2,7 +2,7 @@
 
 {% block subject %}
   {% blocktrans trimmed with order=fulfillment.order context "Fulfillment update email subject" %}
-    Shipping update for order {{ order }}
+    Shipping Update For Order {{ order }}
   {% endblocktrans %}
 {% endblock %}
 

@@ -1,7 +1,7 @@
 {% load i18n %}
 
 {% block subject %}
-  {% trans "Delete your account" context "Account delete reset e-mail subject" %}
+  {% trans "Delete Your Account" context "Account delete reset e-mail subject" %}
 {% endblock %}
 
 {% block plain %}

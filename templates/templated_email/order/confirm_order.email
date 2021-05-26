@@ -4,7 +4,7 @@
 
 {% block subject %}
   {% blocktrans trimmed context "Order confirmation e-mail subject" %}
-    Order {{ order }} details
+    Order {{ order }} Details
   {% endblocktrans %}
 {% endblock %}
 
