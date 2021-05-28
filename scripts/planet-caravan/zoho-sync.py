@@ -216,6 +216,7 @@ def create_or_update_data(product: Product = None):
             SET id = product_product.id, name = %s,
                 description = %s, description_json = %s, product_type_id = %s,
                 category_id = %s, metadata = %s, private_metadata = %s, updated_at = NOW()
+                is_published = %s, publication_date = NOW()
             WHERE id = %s
            """,
                        (
@@ -223,6 +224,7 @@ def create_or_update_data(product: Product = None):
                            product.name, product.description, product.description_json,
                            product.type.id, product.category.children[0].id,
                            product.metadata, product.private_metadata,
+                           product.is_published,
                            product.id
                        ))
     else:
