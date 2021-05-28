@@ -215,7 +215,7 @@ def create_or_update_data(product: Product = None):
             UPDATE product_product
             SET id = product_product.id, name = %s,
                 description = %s, description_json = %s, product_type_id = %s,
-                category_id = %s, metadata = %s, private_metadata = %s, updated_at = NOW()
+                category_id = %s, metadata = %s, private_metadata = %s, updated_at = NOW(),
                 is_published = %s, publication_date = NOW()
             WHERE id = %s
            """,
