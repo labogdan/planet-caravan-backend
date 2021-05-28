@@ -2,7 +2,7 @@
 
 {% block subject %}
   {% blocktrans trimmed context "Order cancel e-mail subject" %}
-    Order {{ order }} canceled
+    Order {{ order }} Canceled
   {% endblocktrans %}
 {% endblock %}
 

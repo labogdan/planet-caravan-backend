@@ -187,7 +187,7 @@
             {% trans "Subtotal" context "E-mail order lines summary table" %}
           </td>
           <td style="padding: 5px; text-align: right;" align="right">
-            {% price order.get_subtotal display_gross=order.display_gross_prices html=False %}
+            {% price order.get_subtotal display_gross=False html=False %}
           </td>
         </tr>
         <tr>
@@ -201,7 +201,7 @@
         <tr>
           <td colspan="3" style="padding: 5px; text-align: right;" align="right">
             {% if order.display_gross_prices %}
-              {% trans "Taxes (included)" context "E-mail order lines summary table" %}
+              {% trans "Taxes" context "E-mail order lines summary table" %}
             {% else %}
               {% trans "Taxes" context "E-mail order lines summary table" %}
             {% endif %}
@@ -222,7 +222,7 @@
         {% endif %}
         <tr>
           <td colspan="3" style="padding: 5px; text-align: right;" align="right">
-            <strong>{% trans "Total" context "E-mail order lines summary table" %}</strong>
+            <strong>{% trans "Grand Total" context "E-mail order lines summary table" %}</strong>
           </td>
           <td style="padding: 5px; text-align: right;" align="right">
             <strong>{% price order.total display_gross=order.display_gross_prices html=False %}</strong>
@@ -232,20 +232,20 @@
       <thead class="table-header-row" style="border-bottom: 2px solid #000;">
         <tr>
           <th style="padding: 5px; max-width: 33%;">{% trans "Item" context "Ordered item name" %}</th>
-          <th style="padding: 5px;">{% trans "Quantity" context "Quantity ordered of a product" %}</th>
-          <th style="padding: 5px;"></th>
-          <th style="padding: 5px;">{% trans "Price" context "Ordered item subtotal (unit price * quantity)" %}</th>
+          <th style="padding: 5px;">{% trans "Qty" context "Quantity ordered of a product" %}</th>
+          <th style="padding: 5px;">Price</th>
+          <th style="padding: 5px;">{% trans "Total" context "Ordered item subtotal (unit price * quantity)" %}</th>
         </tr>
       </thead>
       <tbody>
         {% for line in order %}
           <tr class="table-item-row" style="border-bottom: 1px solid #D3D1D0;">
-            <td style="padding: 5px; max-width: 33%;">{% display_translated_order_line_name line %}</td>
-            <td style="padding: 5px; text-align: right;" align="right">{{ line.quantity }}</td>
-            <td style="padding: 5px; text-align: right;" align="right">
-              {% price line.unit_price display_gross=order.display_gross_prices html=False %}
+            <td style="padding: 5px; max-width: 33%; text-align:center;">{% display_translated_order_line_name line %}</td>
+            <td style="padding: 5px; text-align: center;">{{ line.quantity }}</td>
+            <td style="padding: 5px; text-align: center;">
+              {% price line.unit_price display_gross=False html=False %}
             </td>
-            <td style="padding: 5px; text-align: right;" align="right">{% price line.get_total display_gross=order.display_gross_prices html=False %}</td>
+            <td style="padding: 5px; text-align: center;">{% price line.get_total display_gross=False html=False %}</td>
           </tr>
         {% endfor %}
       </tbody>

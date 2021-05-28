@@ -2,7 +2,7 @@
 
 {% block subject %}
   {% blocktrans trimmed context "Payment confirmation subject" %}
-    Order {{ order }} payment details
+    Order {{ order }} Payment Details
   {% endblocktrans %}
 {% endblock %}
 

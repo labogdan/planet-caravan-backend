@@ -2,7 +2,7 @@
 
 {% block subject %}
   {% blocktrans trimmed with order=fulfillment.order context "Fulfillment confirmation email subject" %}
-    Your order {{ order }} has been fulfilled
+    Your Order {{ order }} Has Been Fulfilled
   {% endblocktrans %}
 {% endblock %}
 

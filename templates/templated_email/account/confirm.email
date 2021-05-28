@@ -1,7 +1,7 @@
 {% load i18n %}
 
 {% block subject %}
-  {% trans "Account confirmation e-mail" context "Account confirmation e-mail subject" %}
+  {% trans "Account Confirmation E-mail" context "Account confirmation e-mail subject" %}
 {% endblock %}
 
 {% block plain %}

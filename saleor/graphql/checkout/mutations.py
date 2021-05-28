@@ -303,7 +303,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                     add_variant_to_checkout(instance, variant, quantity)
                 except InsufficientStock as exc:
                     raise ValidationError(
-                        f"Insufficient product stock: {exc.item}", code=exc.code
+                        f"Unfortunately, an item in your cart has sold out: {exc.item}. We appreciate your continued support!", code=exc.code
                     )
                 except ProductNotPublished as exc:
                     raise ValidationError(
@@ -381,7 +381,7 @@ class CheckoutLinesAdd(BaseMutation):
                     )
                 except InsufficientStock as exc:
                     raise ValidationError(
-                        f"Insufficient product stock: {exc.item}", code=exc.code
+                        f"Unfortunately, an item in your cart has sold out: {exc.item}. We appreciate your continued support!", code=exc.code
                     )
                 except ProductNotPublished as exc:
                     raise ValidationError(
