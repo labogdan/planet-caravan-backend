@@ -235,7 +235,9 @@ def create_or_update_data(product: Product = None):
                ON CONFLICT (slug) DO UPDATE
                 SET id = product_product.id, name = %s,
                     description = %s, description_json = %s, product_type_id = %s,
-                    category_id = %s, metadata = %s, private_metadata = %s, updated_at = NOW()
+                    category_id = %s, metadata = %s, private_metadata = %s,
+                    is_published = %s, publication_date = NOW()
+                    updated_at = NOW()
                RETURNING id
                """,
                        (
@@ -249,7 +251,8 @@ def create_or_update_data(product: Product = None):
                            # UPDATE clause
                            product.name, product.description, product.description_json,
                            product.type.id, product.category.children[0].id,
-                           product.metadata, product.private_metadata
+                           product.metadata, product.private_metadata,
+                           product.is_published
                        ))
 
         product.id = cursor.fetchone()[0]
