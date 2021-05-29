@@ -238,7 +238,7 @@ def create_or_update_data(product: Product = None):
                 SET id = product_product.id, name = %s,
                     description = %s, description_json = %s, product_type_id = %s,
                     category_id = %s, metadata = %s, private_metadata = %s,
-                    is_published = %s, publication_date = NOW()
+                    is_published = %s, publication_date = NOW(),
                     updated_at = NOW()
                RETURNING id
                """,
