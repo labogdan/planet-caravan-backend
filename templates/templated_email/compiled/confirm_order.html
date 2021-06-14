@@ -232,7 +232,7 @@
       <thead class="table-header-row" style="border-bottom: 2px solid #000;">
         <tr>
           <th style="padding: 5px; max-width: 33%;">{% trans "Item" context "Ordered item name" %}</th>
-          <th style="padding: 5px;">{% trans "Qty" context "Quantity ordered of a product" %}</th>
+          <th style="padding: 5px; min-width:20px;">{% trans "Qty" context "Quantity ordered of a product" %}</th>
           <th style="padding: 5px;">Price</th>
           <th style="padding: 5px;">{% trans "Total" context "Ordered item subtotal (unit price * quantity)" %}</th>
         </tr>
@@ -240,7 +240,7 @@
       <tbody>
         {% for line in order %}
           <tr class="table-item-row" style="border-bottom: 1px solid #D3D1D0;">
-            <td style="padding: 5px; max-width: 33%; text-align:center;">{% display_translated_order_line_name line %}</td>
+            <td style="padding: 5px; max-width: 33%; text-align:left;">{% display_translated_order_line_name line %}</td>
             <td style="padding: 5px; text-align: center;">{{ line.quantity }}</td>
             <td style="padding: 5px; text-align: center;">
               {% price line.unit_price display_gross=False html=False %}
