@@ -4,6 +4,7 @@ from pprint import pprint
 from Lib.Saleor.Saleor import Saleor
 from Lib.ShopKeep.SaleorToShopKeep import SaleorToShopKeep
 from pprint import pprint
+from Lib.Email import send_email
 
 def run_process(arguments = None):
     environment = 'production'
@@ -21,7 +22,18 @@ def run_process(arguments = None):
         return
 
     sk = SaleorToShopKeep(environment, adjustments)
-    return sk.run(s.mark_adjusted)
+    result = sk.run(s.mark_adjusted)
+
+    # Try sending email
+    try:
+        adj_count = len(adjustments.keys())
+        adj = 'Adjustment' if adj_count == 1 else 'Adjustments'
+        send_email('Order Adjustment Sync complete', f'{adj_count} {adj} made.')
+    except:
+        pass
+
+
+    return result
 
 
 if __name__ == '__main__':
