@@ -112,7 +112,13 @@ def handle_raw_product(raw_product: dict = None, config: dict = None):
     product.description_json = description_block(raw_product['Description'])
 
     metadata = {}
-    for mk, pk in {'DROP_DATE': 'Drop_Date_Time', 'COMING_SOON': 'Coming_Soon'}.items():
+    for mk, pk in {
+        'DROP_DATE': 'Drop_Date_Time',
+        'COMING_SOON': 'Coming_Soon',
+        'CROSS_SELL': 'Cross_Sell',
+        'CROSS_SELL_URL': 'Cross_Sell_URL',
+        'PELICAN_SIZE': 'Suggested_Pelican_Size'
+    }.items():
         if pk in raw_product and raw_product[pk] is not None:
             metadata[mk] = str(raw_product[pk])
 
