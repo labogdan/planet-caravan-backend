@@ -1182,7 +1182,15 @@ class Saleor:
             WHERE order_line_id = %s and stock_id = %s
             """, (item['order_line_id'], item['stock_id']))
 
+            # Update the quantity
+            cursor.execute("""
+            UPDATE warehouse_stock
+            SET quantity = GREATEST(0, quantity - %s)
+            WHERE product_variant_id = %s
+            """, (item['quantity'], item['variant_id']))
+
         order_ids = tuple(fulfillment_ids.keys())
+
         if len(order_ids):
             # Update order status
             cursor.execute("""
