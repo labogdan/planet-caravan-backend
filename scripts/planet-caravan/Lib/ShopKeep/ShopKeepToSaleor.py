@@ -2,12 +2,13 @@ import os
 import glob
 from time import sleep
 
-from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 
 class ShopKeepToSaleor:
     def __init__(self, environment):
@@ -19,6 +20,7 @@ class ShopKeepToSaleor:
 
     def run(self):
         url = os.getenv('SK_HOSTNAME')
+        chrome_version = os.getenv('CHROMEDRIVER_VERSION')
 
         # Open up a browser
         chrome_options = webdriver.ChromeOptions()
@@ -30,7 +32,9 @@ class ShopKeepToSaleor:
         chrome_options.add_argument("--window-size=1920,1080")
 
         if self.environment == 'local':
-            self.browser = webdriver.Chrome(options=chrome_options)
+            self.browser = webdriver.Chrome(
+                ChromeDriverManager(version=chrome_version).install(),
+                options=chrome_options)
         else:
             chrome_options.add_argument("--headless")
             chrome_options.add_argument("--disable-dev-shm-usage")
@@ -38,8 +42,9 @@ class ShopKeepToSaleor:
             chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
             self.browser = webdriver.Chrome(
-                executable_path=os.environ.get("CHROMEDRIVER_PATH"),
+                ChromeDriverManager(version="87.0.4280.88").install(),
                 chrome_options=chrome_options)
+
 
         self.browser.get(url)
 
