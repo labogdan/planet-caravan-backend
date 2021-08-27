@@ -42,7 +42,7 @@ class ShopKeepToSaleor:
             chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
             self.browser = webdriver.Chrome(
-                ChromeDriverManager(version="87.0.4280.88").install(),
+                ChromeDriverManager(version=chrome_version).install(),
                 chrome_options=chrome_options)
 
 
