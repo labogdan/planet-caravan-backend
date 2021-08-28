@@ -21,6 +21,8 @@ def run_process(arguments = None):
     if adjustments and len(adjustments.keys()) < 1:
         return
 
+    print(f'Adjustments: {len(adjustments.keys())}')
+
     sk = SaleorToShopKeep(environment, adjustments)
     result = sk.run(s.mark_adjusted)
 

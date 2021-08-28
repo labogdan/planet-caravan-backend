@@ -41,7 +41,7 @@ class SaleorToShopKeep:
         else:
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--no-sandbox")
-            chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+            # chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
             self.browser = webdriver.Chrome(
                 ChromeDriverManager(version=chrome_version).install(),
@@ -54,9 +54,6 @@ class SaleorToShopKeep:
         self.navigate_to_adjustments()
 
         self.change_inventories(mark_adjusted)
-
-        while True:
-            sleep(2)
 
         return True
 
@@ -106,14 +103,18 @@ class SaleorToShopKeep:
 
     def navigate_to_adjustments(self):
         print("Navigating to adjustments page...")
+
         # Open the menu
         menu_xpath = '//*[contains(@class, "ls-bonfire-sidebar")]//a[contains(@data-test,"SidebarLink-1-Items")]'
         self.wait_then_click(menu_xpath)
+
+        info('clicked')
 
         sleep(0.5)
 
         report_path = '//a[contains(@data-test, "SidebarLink-2-Adjust Inventory")]'
         self.wait_then_click(report_path)
+        warning('clicked')
 
     def change_inventories(self, mark_adjusted):
 
