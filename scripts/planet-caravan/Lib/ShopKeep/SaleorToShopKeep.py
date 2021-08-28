@@ -108,13 +108,10 @@ class SaleorToShopKeep:
         menu_xpath = '//*[contains(@class, "ls-bonfire-sidebar")]//a[contains(@data-test,"SidebarLink-1-Items")]'
         self.wait_then_click(menu_xpath)
 
-        info('clicked')
-
         sleep(0.5)
 
         report_path = '//a[contains(@data-test, "SidebarLink-2-Adjust Inventory")]'
         self.wait_then_click(report_path)
-        warning('clicked')
 
     def change_inventories(self, mark_adjusted):
 

@@ -18,7 +18,7 @@ def run_process(arguments = None):
     s.db_connect()
     adjustments = s.get_adjustments()
 
-    if adjustments and len(adjustments.keys()) < 1:
+    if not adjustments or len(adjustments.keys()) < 1:
         return
 
     print(f'Adjustments: {len(adjustments.keys())}')
