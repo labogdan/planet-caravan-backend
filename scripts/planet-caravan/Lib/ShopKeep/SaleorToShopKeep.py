@@ -1,14 +1,14 @@
 import os
-import glob
 from time import sleep
-from Lib.CLI import *
 import traceback
 
-from selenium import webdriver
+from Lib.CLI import *
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
+
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 class SaleorToShopKeep:
@@ -20,6 +20,7 @@ class SaleorToShopKeep:
 
     def run(self, mark_adjusted=None):
         url = os.getenv('SK_HOSTNAME')
+        chrome_version = os.getenv('CHROMEDRIVER_VERSION')
 
         # Open up a browser
         chrome_options = webdriver.ChromeOptions()
@@ -34,14 +35,16 @@ class SaleorToShopKeep:
         chrome_options.add_argument("--window-size=1920,1080")
 
         if self.environment == 'local':
-            self.browser = webdriver.Chrome(options=chrome_options)
+            self.browser = webdriver.Chrome(
+                ChromeDriverManager(version=chrome_version).install(),
+                options=chrome_options)
         else:
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--no-sandbox")
             chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
             self.browser = webdriver.Chrome(
-                executable_path=os.environ.get("CHROMEDRIVER_PATH"),
+                ChromeDriverManager(version=chrome_version).install(),
                 chrome_options=chrome_options)
 
         self.browser.get(url)
@@ -49,9 +52,19 @@ class SaleorToShopKeep:
         # Sequence of events
         self.login()
         self.navigate_to_adjustments()
+
         self.change_inventories(mark_adjusted)
 
+        while True:
+            sleep(2)
+
         return True
+
+    def get_main_frame(self):
+        iframe_path = '//iframe[contains(@title, "iframe")]'
+        self.wait_for_element(iframe_path)
+        iframe = self.browser.find_element_by_xpath(iframe_path)
+        self.browser.switch_to_frame(iframe)
 
     def login(self):
         print("Logging in...")
@@ -94,23 +107,28 @@ class SaleorToShopKeep:
     def navigate_to_adjustments(self):
         print("Navigating to adjustments page...")
         # Open the menu
-        menu_xpath = '//*[contains(@class, "collapsed") and contains(text(), "Items")]'
+        menu_xpath = '//*[contains(@class, "ls-bonfire-sidebar")]//a[contains(@data-test,"SidebarLink-1-Items")]'
         self.wait_then_click(menu_xpath)
 
         sleep(0.5)
 
-        # Go to the Inventory Page
-        self.browser.find_element_by_xpath(
-            '//*[contains(@class, "navigation__link")]/a[contains(text(), "Adjust Inventory")]').click()
+        report_path = '//a[contains(@data-test, "SidebarLink-2-Adjust Inventory")]'
+        self.wait_then_click(report_path)
 
     def change_inventories(self, mark_adjusted):
+
+        self.get_main_frame()
+
         for order_id, order in self.adjustments.items():
             info(f'Syncing Order #{order_id}')
 
             order_okay = True
             for item in order.values():
                 try:
+                    search_field_path = '//*[@id="item_input"]'
+                    self.wait_for_element(search_field_path)
                     search_field = self.browser.find_element_by_id('item_input')
+
                     comment(f'Searching {item["search"]}')
                     search_field.send_keys(item['search'])
 
