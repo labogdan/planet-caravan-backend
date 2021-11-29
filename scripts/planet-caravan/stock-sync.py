@@ -15,12 +15,15 @@ def run_process(arguments = None):
     sk = ShopKeepToSaleor(environment)
     stock_file = sk.run()
 
-    s = Saleor(environment)
-    result = s.update_stock(stock_file)
+    result = None
+    if stock_file:
+        s = Saleor(environment)
+        result = s.update_stock(stock_file)
 
     # Try sending email
     try:
-        send_email('ShopKeep Stock Sync complete', 'Complete.')
+        pass
+        # send_email('ShopKeep Stock Sync complete', 'Complete.')
     except:
         pass
 

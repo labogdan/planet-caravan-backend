@@ -2,12 +2,12 @@ import os
 import glob
 from time import sleep
 
-from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 
 class ShopKeepToSaleor:
     def __init__(self, environment):
@@ -19,6 +19,7 @@ class ShopKeepToSaleor:
 
     def run(self):
         url = os.getenv('SK_HOSTNAME')
+        chrome_version = os.getenv('CHROMEDRIVER_VERSION')
 
         # Open up a browser
         chrome_options = webdriver.ChromeOptions()
@@ -30,16 +31,19 @@ class ShopKeepToSaleor:
         chrome_options.add_argument("--window-size=1920,1080")
 
         if self.environment == 'local':
-            self.browser = webdriver.Chrome(options=chrome_options)
+            self.browser = webdriver.Chrome(
+                ChromeDriverManager(version=chrome_version).install(),
+                options=chrome_options)
         else:
             chrome_options.add_argument("--headless")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--no-sandbox")
-            chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+            # chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
             self.browser = webdriver.Chrome(
-                executable_path=os.environ.get("CHROMEDRIVER_PATH"),
+                ChromeDriverManager(version=chrome_version).install(),
                 chrome_options=chrome_options)
+
 
         self.browser.get(url)
 
@@ -78,17 +82,26 @@ class ShopKeepToSaleor:
 
         submit.click()
 
+    def get_main_frame(self):
+        iframe_path = '//iframe[contains(@title, "iframe")]'
+        self.wait_for_element(iframe_path)
+        iframe = self.browser.find_element_by_xpath(iframe_path)
+        self.browser.switch_to_frame(iframe)
+
     def generate_report(self):
         print("Generating Report...")
 
         # Open the menu
-        menu_xpath = '//*[contains(@class, "collapsed") and contains(text(), "Reports")]'
+        menu_xpath = '//*[contains(@class, "ls-bonfire-sidebar")]//a[contains(@data-test,"SidebarLink-1-Reports")]'
         self.wait_then_click(menu_xpath)
 
         sleep(0.5)
-        # Go to the export page
-        self.browser.find_element_by_xpath(
-            '//*[contains(@class, "navigation__link")]/a[contains(text(), "Stock Items")]').click()
+
+        report_path = '//a[contains(@data-test, "SidebarLink-2-Stock")]'
+        self.wait_then_click(report_path)
+
+        # Switch to the iframe content
+        self.get_main_frame()
 
         # Request a new export
         export_xpath = '//button[contains(@class, "button") and contains(text(), "Export Stock Items")]'
@@ -96,18 +109,17 @@ class ShopKeepToSaleor:
 
         print("Exporting...")
 
-        # Click the OK button in the modal
-        ok_xpath = '//div[contains(@class, "modal-footer")]/button'
-        self.wait_then_click(ok_xpath, 20)
+        # Go to the export center
+        export_center = '//div[contains(@class, "modal-body")]//a[contains(text(), "Export Center")]'
+        self.wait_then_click(export_center, 20)
 
     def download_file(self):
-        # Go to Export Center
-        self.wait_then_click(
-            '//div[contains(@class, "navigation__link")]/a[contains(text(), "Export Center")]')
+        # # Go to Export Center
+        # self.wait_then_click(
+        #     '//div[contains(@class, "navigation__link")]/a[contains(text(), "Export Center")]')
 
         attempts = 20
-        download_xpath = '//div[contains(@class, "ReactVirtualized__Table__row")][1]//span[contains(@class, ' \
-                         '"export-action--ready")]/a '
+        download_xpath = '//div[contains(@class, "ReactVirtualized__Table__row")][1]//span[contains(@class, "export-action--ready")]/a'
 
         while attempts > 0:
             print(f'Waiting for export to be ready ({attempts} attempts remaining)...')
@@ -116,8 +128,7 @@ class ShopKeepToSaleor:
 
             try:
                 # Sort by Created at, so the newest is at the top
-                sort_xpath = '//*[contains(@class, "ReactVirtualized__Table__headerColumn")]/span[contains(@title, ' \
-                             '"Created At")] '
+                sort_xpath = '//*[contains(@class, "ReactVirtualized__Table")]/span[contains(@title, "Created At")]'
                 self.wait_then_click(sort_xpath)
                 sleep(0.1)
                 self.browser.find_element_by_xpath(sort_xpath).click()
@@ -129,6 +140,7 @@ class ShopKeepToSaleor:
                 attempts = attempts - 1
                 self.browser.refresh()
                 sleep(1)
+                self.get_main_frame()
 
         if attempts == 0:
             raise Exception("Could not download stock file.")
